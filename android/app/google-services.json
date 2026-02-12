@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "427741528193",
+    "firebase_url": "https://werun-bf356-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "werun-bf356",
+    "storage_bucket": "werun-bf356.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:427741528193:android:bb07a91925c8c445e2cd80",
+        "android_client_info": {
+          "package_name": "com.mapp05.werun"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6G4T6x8buiDJqDZmuAvuL_WBuWEYEm8U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
