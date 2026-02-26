@@ -14,7 +14,15 @@ rootProject.layout.buildDirectory.value(newBuildDir)
 subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
+    
+    configurations.all {
+        resolutionStrategy {
+            force("com.google.guava:guava:33.0.0-android")
+            force("com.google.code.findbugs:jsr305:3.0.2")
+        }
+    }
 }
+
 subprojects {
     project.evaluationDependsOn(":app")
 }
