@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'components/bottom_navbar.dart';
 import 'features/profile/screens/profile_screen.dart';
 import 'features/map/screens/map_screen.dart';
-
+import 'features/view/screens/view_screen.dart';
 
 void main() {
   runApp(const WeRunApp());
@@ -34,14 +34,12 @@ class _MainScreenState extends State<MainScreen> {
     Center(
       child: Text("Home", style: TextStyle(color: Colors.white)),
     ),
-    MapScreen(), // ✅ เรียกหน้าจริง
+    MapScreen(),
     Center(
       child: Text("Start Run", style: TextStyle(color: Colors.white)),
     ),
-    Center(
-      child: Text("View", style: TextStyle(color: Colors.white)),
-    ),
-    ProfileScreen(), // ✅ หน้าจริง
+    ViewScreen(), // ✅ เชื่อมตรงนี้
+    ProfileScreen(),
   ];
 
   @override

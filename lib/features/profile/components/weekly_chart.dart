@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'dart:math';
 
 class WeeklyChart extends StatefulWidget {
-  final List<double> weeklyKm;
-
-  const WeeklyChart({super.key, this.weeklyKm = const [2, 5, 0, 7, 4, 6, 3]});
+  const WeeklyChart({super.key});
 
   @override
   State<WeeklyChart> createState() => _WeeklyChartState();
@@ -13,159 +12,159 @@ class WeeklyChart extends StatefulWidget {
 class _WeeklyChartState extends State<WeeklyChart>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _animation;
 
-  double get maxKm {
-    final m = widget.weeklyKm.reduce(max);
-    return m == 0 ? 1 : m;
-  }
+  final int maxPoints = 20;
+  final List<double> data = List.generate(20, (_) => 0);
+  Timer? _timer;
+  final Random random = Random();
 
   @override
   void initState() {
     super.initState();
+
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 900),
+      duration: const Duration(milliseconds: 400),
     );
 
-    _animation = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOutCubic,
-    );
+    _startStreaming();
+  }
 
-    _controller.forward();
+void _startStreaming() {
+    _timer = Timer.periodic(const Duration(seconds: 10), (_) {
+      setState(() {
+        data.removeAt(0);
+        data.add(random.nextDouble() * 6); // 0-6 km
+      });
+
+      _controller.forward(from: 0); // เล่น animation ใหม่
+    });
   }
 
   @override
   void dispose() {
+    _timer?.cancel();
     _controller.dispose();
     super.dispose();
   }
 
+  double get maxValue {
+    final m = data.reduce(max);
+    return m == 0 ? 1 : m;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 180,
-      child: AnimatedBuilder(
-        animation: _animation,
-        builder: (context, child) {
-          return CustomPaint(
-            painter: _ChartPainter(
-              data: widget.weeklyKm,
-              progress: _animation.value,
-              maxKm: maxKm,
+    return Container(
+      height: 220,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF3A3A3A),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "This week",
+            style: TextStyle(color: Colors.white, fontSize: 18),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) {
+                return CustomPaint(
+                  painter: _StreamingChartPainter(
+                    data: data,
+                    progress: _controller.value,
+                    maxValue: maxValue,
+                  ),
+                  size: Size.infinite,
+                );
+              },
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
 }
 
 ////////////////////////////////////////////////////////////
-/// CHART PAINTER
-////////////////////////////////////////////////////////////
 
-class _ChartPainter extends CustomPainter {
+class _StreamingChartPainter extends CustomPainter {
   final List<double> data;
   final double progress;
-  final double maxKm;
+  final double maxValue;
 
-  _ChartPainter({
+  _StreamingChartPainter({
     required this.data,
     required this.progress,
-    required this.maxKm,
+    required this.maxValue,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final double widthPerItem = size.width / (data.length - 1);
+    final widthPerItem = size.width / (data.length - 1);
 
-    /// Gradient Line
+    /// GRID LINES
+    final gridPaint = Paint()
+      ..color = Colors.white24
+      ..strokeWidth = 1;
+
+    for (int i = 0; i < data.length; i++) {
+      final x = i * widthPerItem;
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
+    }
+
+    /// LINE PAINT (เขียวเรืองแสง)
     final linePaint = Paint()
-      ..shader = const LinearGradient(
-        colors: [Color(0xFF00FF94), Color(0xFF00C853)],
-      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
+      ..color = const Color(0xFF00FF5F)
       ..strokeWidth = 3
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    /// Gradient Fill
-    final fillPaint = Paint()
-      ..shader = LinearGradient(
-        colors: [
-          const Color(0xFF00FF94).withValues(alpha: 0.35),
-          Colors.transparent,
-        ],
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
-
     final path = Path();
-    final fillPath = Path();
 
     for (int i = 0; i < data.length; i++) {
       final x = i * widthPerItem;
-      final y =
-          size.height - ((data[i] / maxKm) * size.height * 0.75 * progress);
+
+      final animatedValue = i == data.length - 1 ? data[i] * progress : data[i];
+
+      final y = size.height - ((animatedValue / maxValue) * size.height * 0.8);
 
       if (i == 0) {
         path.moveTo(x, y);
-        fillPath.moveTo(x, size.height);
-        fillPath.lineTo(x, y);
       } else {
         path.lineTo(x, y);
-        fillPath.lineTo(x, y);
       }
     }
 
-    fillPath.lineTo(size.width, size.height);
-    fillPath.close();
-
-    canvas.drawPath(fillPath, fillPaint);
     canvas.drawPath(path, linePaint);
 
-    /// Draw dots + km text
-    final dotPaint = Paint()..color = const Color(0xFF00FF94);
-
+    /// DOTS
     for (int i = 0; i < data.length; i++) {
       final x = i * widthPerItem;
-      final y =
-          size.height - ((data[i] / maxKm) * size.height * 0.75 * progress);
+      final y = size.height - ((data[i] / maxValue) * size.height * 0.8);
 
-      canvas.drawCircle(Offset(x, y), 4, dotPaint);
+      final isLast = i == data.length - 1;
 
-      final textPainter = TextPainter(
-        text: TextSpan(
-          text: "${data[i].toInt()} km",
-          style: const TextStyle(color: Colors.white70, fontSize: 10),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
+      final dotPaint = Paint()..color = const Color(0xFF00FF5F);
 
-      textPainter.paint(canvas, Offset(x - 16, y - 22));
+      canvas.drawCircle(Offset(x, y), isLast ? 6 : 4, dotPaint);
     }
 
-    /// Draw Y-axis labels (0 km และ max km)
-    final labelPainterTop = TextPainter(
-      text: TextSpan(
-        text: "${maxKm.toInt()} km",
-        style: const TextStyle(color: Colors.white38, fontSize: 11),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-
-    labelPainterTop.paint(canvas, const Offset(0, 0));
-
-    final labelPainterBottom = TextPainter(
+    /// 0 km top right
+    final textPainter = TextPainter(
       text: const TextSpan(
         text: "0 km",
-        style: TextStyle(color: Colors.white38, fontSize: 11),
+        style: TextStyle(color: Colors.white70, fontSize: 12),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
 
-    labelPainterBottom.paint(canvas, Offset(0, size.height - 14));
+    textPainter.paint(canvas, Offset(size.width - textPainter.width, 0));
   }
 
   @override
