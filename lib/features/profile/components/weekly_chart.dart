@@ -31,7 +31,7 @@ class _WeeklyChartState extends State<WeeklyChart>
   }
 
 void _startStreaming() {
-    _timer = Timer.periodic(const Duration(seconds: 10), (_) {
+    _timer = Timer.periodic(const Duration(seconds: 2), (_) {
       setState(() {
         data.removeAt(0);
         data.add(random.nextDouble() * 6); // 0-6 km
