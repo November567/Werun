@@ -55,7 +55,7 @@ class ProfileHeaderCard extends StatelessWidget {
             ],
           ),
 
-          SizedBox(height: 20),
+          SizedBox(height: 10),
           Divider(color: Colors.grey),
           SizedBox(height: 15),
 
