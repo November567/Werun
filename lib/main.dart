@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'components/bottom_navbar.dart';
+import 'features/profile/screens/profile_screen.dart';
+import 'features/map/screens/map_screen.dart';
 
-// import หน้า register
-import 'features/auth/screens/register_screen.dart';
 
 void main() {
   runApp(const WeRunApp());
@@ -12,11 +13,50 @@ class WeRunApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'WeRun',
-      theme: ThemeData.dark(),
-      home: const RegisterScreen(),
+      home: MainScreen(),
+    );
+  }
+}
+
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
+
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  int _currentIndex = 0;
+
+  final List<Widget> _pages = const [
+    Center(
+      child: Text("Home", style: TextStyle(color: Colors.white)),
+    ),
+    MapScreen(), // ✅ เรียกหน้าจริง
+    Center(
+      child: Text("Start Run", style: TextStyle(color: Colors.white)),
+    ),
+    Center(
+      child: Text("View", style: TextStyle(color: Colors.white)),
+    ),
+    ProfileScreen(), // ✅ หน้าจริง
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: _pages[_currentIndex],
+      bottomNavigationBar: WeRunBottomNavbar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+      ),
     );
   }
 }
