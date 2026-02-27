@@ -62,7 +62,6 @@ class _ViewScreenState extends State<ViewScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // 🔍 SEARCH BAR
             Padding(
               padding: const EdgeInsets.all(12),
               child: TextField(
@@ -82,8 +81,6 @@ class _ViewScreenState extends State<ViewScreen> {
                 ),
               ),
             ),
-
-            // 🟩 GRID
             Expanded(
               child: GridView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -94,7 +91,10 @@ class _ViewScreenState extends State<ViewScreen> {
                   mainAxisSpacing: 8,
                 ),
                 itemBuilder: (context, index) {
-                  return ViewGridItem(imageUrl: _filteredItems[index]["url"]!);
+                  return ViewGridItem(
+                    imageUrl: _filteredItems[index]["url"]!,
+                    title: _filteredItems[index]["title"]!,
+                  );
                 },
               ),
             ),
