@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // import หน้า register
 import 'features/auth/screens/register_screen.dart';
-=======
 import 'components/bottom_navbar.dart';
 import 'features/profile/screens/profile_screen.dart';
 import 'features/map/screens/map_screen.dart';
 import 'features/view/screens/view_screen.dart';
->>>>>>> Profile&Grid
 
 void main() async {
   await dotenv.load(fileName: ".env");
