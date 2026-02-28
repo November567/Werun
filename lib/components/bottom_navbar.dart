@@ -33,7 +33,7 @@ class WeRunBottomNavbar extends StatelessWidget {
             icon: Icon(Icons.directions_run),
             label: 'Start Run',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
+          BottomNavigationBarItem(icon: Icon(Icons.grid_3x3_rounded), label: 'View'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Me'),
         ],
       ),
