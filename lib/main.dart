@@ -7,6 +7,7 @@ import 'components/bottom_navbar.dart';
 import 'features/profile/screens/profile_screen.dart';
 import 'features/map/screens/map_screen.dart';
 import 'features/view/screens/view_screen.dart';
+import 'features/view/screens/home_screen.dart'; // ✅ เพิ่มบรรทัดนี้
 
 void main() async {
   await dotenv.load(fileName: ".env");
@@ -35,15 +36,13 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = const [
-    Center(
-      child: Text("Home", style: TextStyle(color: Colors.white)),
-    ),
+  final List<Widget> _pages = [
+    HomeScreen(), // ✅ เปลี่ยนตรงนี้
     MapScreen(),
     Center(
       child: Text("Start Run", style: TextStyle(color: Colors.white)),
     ),
-    ViewScreen(), // ✅ เชื่อมตรงนี้
+    ViewScreen(),
     ProfileScreen(),
   ];
 
