@@ -30,8 +30,12 @@ class _LoginScreenState extends State<LoginScreen> {
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
-      // ❗ ไม่ต้อง Navigator
-      // AuthGate จะพาเข้า MainScreen เอง
+      // ✅ ล็อกอินสำเร็จ → AuthGate จะตรวจจับและแสดง MainScreen โดยอัตโนมัติ
+      print('✅ signInWithEmailAndPassword สำเร็จ');
+      if (mounted) {
+        // รอให้ FirebaseAuth stream อัปเดตใจ
+        await Future.delayed(const Duration(milliseconds: 300));
+      }
     } on FirebaseAuthException catch (e) {
       String message = 'Login failed';
       if (e.code == 'user-not-found') {

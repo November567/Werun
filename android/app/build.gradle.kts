@@ -38,6 +38,29 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    // Workaround for mergeDebugJavaResource failures caused by duplicate
+    // files in dependencies (e.g. META-INF licenses, plugin resources).
+    // These duplicates trigger a com.google.common.base.VerifyException during
+    // the merge task. Excluding or picking first avoids the crash.
+    packagingOptions {
+        resources {
+            // pickFirst is safer than exclude if a file is actually needed by
+            // some library. We limit to a few common problematic patterns.
+            pickFirsts += listOf(
+                "META-INF/**",
+                "LICENSE",
+                "LICENSE.txt",
+                "NOTICE",
+                "NOTICE.txt",
+                "dependencies.properties"
+            )
+            excludes += listOf(
+                "META-INF/AL2.0",
+                "META-INF/LGPL2.1"
+            )
+        }
+    }
 }
 
 flutter {

@@ -48,6 +48,8 @@ class AuthGate extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
+        print('🔍 AuthGate stream event - connectionState: ${snapshot.connectionState}, hasData: ${snapshot.hasData}');
+        
         // loading
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -58,10 +60,13 @@ class AuthGate extends StatelessWidget {
 
         // ยังไม่ login
         if (!snapshot.hasData) {
+          print('❌ No user data - showing LoginScreen');
           return const LoginScreen();
         }
 
         // login แล้ว
+        print('✅ User logged in: ${snapshot.data?.email} - showing MainScreen');
+        print('✅ AuthGate detected user: ${snapshot.data?.email}');
         return MainScreen(prefs: prefs);
       },
     );
@@ -77,19 +82,34 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
+  int _currentIndex = 1; // ← ใช้ 1 แทน 0
 
   final List<Widget> _pages = const [
-    Center(
-      child: Text("Home", style: TextStyle(color: Colors.white)),
-    ),
+    Center(child: Text("Home" )),
     MapScreen(),
-    Center(
-      child: Text("Start Run", style: TextStyle(color: Colors.white)),
-    ),
+    Center(child: Text("Start Run" )),
     ViewScreen(),
     ProfileScreen(),
   ];
+
+  TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+
+  Future<void> _login() async {
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+      print('✅ signInWithEmailAndPassword สำเร็จ');
+      // ⏳ รอให้ AuthGate stream ตรวจจับ → จะแสดง MainScreen อัตโนมัติ
+      if (mounted) {
+        await Future.delayed(const Duration(milliseconds: 300));
+      }
+    } on FirebaseAuthException catch (e) {
+      // … error handling …
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,6 +121,10 @@ class _MainScreenState extends State<MainScreen> {
         onTap: (index) {
           setState(() => _currentIndex = index);
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.login),
+        onPressed: _login,
       ),
     );
   }
