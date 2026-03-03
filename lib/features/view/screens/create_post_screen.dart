@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../components/createPost/run_route_card.dart';
 import '../components/createPost/media_section.dart';
 import '../components/createPost/tags_section.dart';
+import '../../models/post.dart';
+import '../../services/post_service.dart';
 
 class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({Key? key}) : super(key: key);
@@ -11,10 +13,13 @@ class CreatePostScreen extends StatefulWidget {
 }
 
 class _CreatePostScreenState extends State<CreatePostScreen> {
-  String selectedPrivacy = 'public'; // 'public', 'followers', 'private'
+  String selectedPrivacy = 'public';
   bool shareToSuggested = false;
   String description = '';
   List<String> tags = ['Khon Kaen', 'Night Run'];
+  bool isLoading = false;
+  String? selectedImageUrl;
+  final PostService _postService = PostService();
 
   @override
   Widget build(BuildContext context) {
@@ -46,22 +51,26 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: GestureDetector(
-              onTap: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Post created successfully!')),
-                );
-              },
+              onTap: isLoading ? null : () => _savePost(),
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.green,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: const Text(
-                  'Share',
-                  style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14),
-                ),
+                child: isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        'Share',
+                        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
               ),
             ),
           ),
@@ -72,15 +81,19 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           child: Column(
             children: [
-              // Run Route Info
               RunRouteCard(),
               const SizedBox(height: 20),
 
-              // Media Section (รวม Add Media + Image Overlay)
-              MediaSection(),
+              MediaSection(
+                onImageChanged: (url) {
+                  setState(() {
+                    selectedImageUrl = url;
+                  });
+                  debugPrint('Image URL updated: $url');
+                },
+              ),
               const SizedBox(height: 20),
 
-              // Tags & Description Section (รวม Privacy ด้วย)
               TagsSection(
                 tags: tags,
                 onTagsChanged: (newTags) {
@@ -103,10 +116,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Privacy Section - ลบออกแล้ว (รวมเข้า TagsSection)
-              // PrivacySection(...)
-
-              // Share to Suggested Checkbox + Share Button (Same row)
               Container(
                 decoration: BoxDecoration(
                   color: const Color(0xFF2a2a2a),
@@ -139,26 +148,30 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     ),
                     const SizedBox(width: 12),
                     GestureDetector(
-                      onTap: () {
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Post created successfully!')),
-                        );
-                      },
+                      onTap: isLoading ? null : () => _savePost(),
                       child: Container(
                         decoration: BoxDecoration(
                           color: Colors.green,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                        child: const Text(
-                          'Share',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
+                        child: isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text(
+                                'Share',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
                       ),
                     ),
                   ],
@@ -171,5 +184,82 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _savePost() async {
+    if (description.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('❌ Please add a description'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      debugPrint('[CreatePost] Creating post...');
+      debugPrint('[CreatePost] Description: $description');
+      debugPrint('[CreatePost] Tags: $tags');
+      debugPrint('[CreatePost] Privacy: $selectedPrivacy');
+      debugPrint('[CreatePost] Image URL: $selectedImageUrl');
+
+      final post = Post(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        userId: 'user123',
+        userName: 'Mr.Gunny',
+        description: description,
+        tags: tags,
+        privacy: selectedPrivacy,
+        imageUrl: selectedImageUrl ?? 'https://www.kku.ac.th/wp-content/uploads/2023/12/IMG_0832-scaled.jpg',
+        createdAt: DateTime.now(),
+      );
+
+      debugPrint('[CreatePost] Saving to Firebase...');
+      await _postService.createPost(post);
+      debugPrint('[CreatePost] Post saved successfully!');
+
+      if (!mounted) {
+        debugPrint('[CreatePost] Widget not mounted, skipping navigation');
+        return;
+      }
+
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      if (!mounted) return;
+
+      debugPrint('[CreatePost] Navigating back to home');
+      Navigator.of(context).pop();
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✨ Post created successfully! ✨'),
+          duration: Duration(seconds: 2),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      debugPrint('[CreatePost] Error: $e');
+      
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ Error: $e'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
   }
 }

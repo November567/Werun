@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:io';
 
 class MediaSection extends StatefulWidget {
-  const MediaSection({Key? key}) : super(key: key);
+  final ValueChanged<String>? onImageChanged;
+
+  const MediaSection({Key? key, this.onImageChanged}) : super(key: key);
 
   @override
   State<MediaSection> createState() => _MediaSectionState();
@@ -15,6 +20,49 @@ class _MediaSectionState extends State<MediaSection> {
   
   String selectedOverlay = 'map'; // 'map' or 'stats'
   int selectedImageIndex = 0;
+  final ImagePicker _picker = ImagePicker();
+  bool _uploading = false;
+
+  Future<void> _pickAndUploadImage(ImageSource source) async {
+    try {
+      final XFile? file = await _picker.pickImage(source: source, imageQuality: 80);
+      if (file == null) return;
+
+      setState(() {
+        _uploading = true;
+      });
+
+      // Upload to Firebase Storage
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('post_images/${DateTime.now().millisecondsSinceEpoch}.jpg');
+      
+      await storageRef.putFile(File(file.path));
+      final url = await storageRef.getDownloadURL();
+
+      setState(() {
+        images.add(url);
+        selectedImageIndex = images.length - 1;
+        _uploading = false;
+      });
+      
+      widget.onImageChanged?.call(url);
+      
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('✅ Image uploaded successfully')),
+      );
+    } catch (e) {
+      setState(() {
+        _uploading = false;
+      });
+      
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('❌ Error: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,9 +115,7 @@ class _MediaSectionState extends State<MediaSection> {
                     left: 50,
                     child: GestureDetector(
                       onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Add more images')),
-                        );
+                        _pickAndUploadImage(ImageSource.gallery);
                       },
                       child: Container(
                         decoration: BoxDecoration(
@@ -78,11 +124,17 @@ class _MediaSectionState extends State<MediaSection> {
                           border: Border.all(color: Colors.white, width: 3),
                         ),
                         padding: const EdgeInsets.all(8),
-                        child: const Icon(
-                          Icons.add,
-                          color: Colors.black,
-                          size: 24,
-                        ),
+                        child: _uploading
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(
+                                Icons.add,
+                                color: Colors.black,
+                                size: 24,
+                              ),
                       ),
                     ),
                   ),
@@ -102,18 +154,14 @@ class _MediaSectionState extends State<MediaSection> {
                           icon: Icons.camera_alt,
                           label: 'Take Photo',
                           onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Open camera')),
-                            );
+                            _pickAndUploadImage(ImageSource.camera);
                           },
                         ),
                         _buildMediaOption(
                           icon: Icons.image,
                           label: 'Gallery',
                           onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Open gallery')),
-                            );
+                            _pickAndUploadImage(ImageSource.gallery);
                           },
                         ),
                         _buildMediaOption(
@@ -121,7 +169,7 @@ class _MediaSectionState extends State<MediaSection> {
                           label: 'Short Video',
                           onTap: () {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Open video')),
+                              const SnackBar(content: Text('Short video not yet implemented')),
                             );
                           },
                         ),
@@ -169,7 +217,7 @@ class _MediaSectionState extends State<MediaSection> {
               GestureDetector(
                 onTap: () => setState(() {
                   selectedOverlay = 'map';
-                  selectedImageIndex = 0; // เลือก Image 1
+                  selectedImageIndex = 0;
                 }),
                 child: Row(
                   children: [
@@ -210,7 +258,7 @@ class _MediaSectionState extends State<MediaSection> {
               GestureDetector(
                 onTap: () => setState(() {
                   selectedOverlay = 'stats';
-                  selectedImageIndex = 1; // เลือก Image 2
+                  selectedImageIndex = 1;
                 }),
                 child: Row(
                   children: [
@@ -249,7 +297,7 @@ class _MediaSectionState extends State<MediaSection> {
           ),
           const SizedBox(height: 12),
 
-          // Image Preview Horizontal Scroll - 2 รูป
+          // Image Preview Horizontal Scroll
           SizedBox(
             height: 100,
             child: SingleChildScrollView(
@@ -266,13 +314,13 @@ class _MediaSectionState extends State<MediaSection> {
                       onTap: () {
                         setState(() {
                           selectedImageIndex = index;
-                          // ติ๊ก overlay ตามการเลือก image
                           if (index == 0) {
-                            selectedOverlay = 'map'; // Image 1 = Map Overlay
+                            selectedOverlay = 'map';
                           } else {
-                            selectedOverlay = 'stats'; // Image 2 = Stats Overlay
+                            selectedOverlay = 'stats';
                           }
                         });
+                        widget.onImageChanged?.call(images[index]);
                       },
                     ),
                   ),
