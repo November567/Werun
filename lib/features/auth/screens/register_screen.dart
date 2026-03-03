@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'login_screen.dart';
+import '../services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -28,29 +29,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => isLoading = true);
 
     try {
-      final userCredential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(
-            email: emailController.text.trim(),
-            password: passwordController.text.trim(),
-          );
+      final user = await AuthService().registerWithEmail(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
 
-      final uid = userCredential.user!.uid;
-
-      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+      await FirebaseFirestore.instance.collection('users').doc(user!.uid).set({
         'fullName': fullNameController.text.trim(),
         'nickName': nickNameController.text.trim(),
         'email': emailController.text.trim(),
         'phone': phoneController.text.trim(),
         'createdAt': Timestamp.now(),
       });
-      // หลังสมัครสมาชิกสำเร็จ ให้ login อัตโนมัติ (AuthGate จะนำเข้า Home ให้อัตโนมัติ)
-      // ไม่ต้อง Navigator ไปหน้า Login
-      // สามารถแสดง SnackBar แจ้งเตือนสมัครสมาชิกสำเร็จได้
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Register success!')));
-      }
+
+      if (!mounted) return;
+      Navigator.of(context).popUntil((route) => route.isFirst);
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -59,9 +52,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } catch (e) {
       debugPrint('Unexpected register error: $e');
     } finally {
-      if (mounted) {
-        setState(() => isLoading = false);
-      }
+      if (mounted) setState(() => isLoading = false);
     }
   }
 

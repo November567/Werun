@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'register_screen.dart';
+import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -26,16 +27,10 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => isLoading = true);
 
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      await AuthService().loginWithEmail(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
-      // ✅ ล็อกอินสำเร็จ → AuthGate จะตรวจจับและแสดง MainScreen โดยอัตโนมัติ
-      print('✅ signInWithEmailAndPassword สำเร็จ');
-      if (mounted) {
-        // รอให้ FirebaseAuth stream อัปเดตใจ
-        await Future.delayed(const Duration(milliseconds: 300));
-      }
     } on FirebaseAuthException catch (e) {
       String message = 'Login failed';
       if (e.code == 'user-not-found') {
@@ -44,11 +39,12 @@ class _LoginScreenState extends State<LoginScreen> {
         message = 'Wrong password';
       }
 
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(message)));
     } finally {
-      setState(() => isLoading = false);
+      if (mounted) setState(() => isLoading = false);
     }
   }
 

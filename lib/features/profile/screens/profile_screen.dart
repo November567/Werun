@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 import '../components/profile_header_card.dart';
 import '../components/profile_menu_item.dart';
 import '../components/weekly_chart.dart';
+import '../../auth/services/auth_service.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -72,8 +72,7 @@ class _MenuSection extends StatelessWidget {
   const _MenuSection();
 
   Future<void> _logout() async {
-    await FirebaseAuth.instance.signOut();
-    // ✅ AuthGate จะพาไปหน้า Login ให้อัตโนมัติ
+    await AuthService().signOut();
   }
 
   @override
