@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+
 import '../components/profile_header_card.dart';
 import '../components/profile_menu_item.dart';
 import '../components/weekly_chart.dart';
+import '../../auth/services/auth_service.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -69,6 +71,10 @@ class _TopBar extends StatelessWidget {
 class _MenuSection extends StatelessWidget {
   const _MenuSection();
 
+  Future<void> _logout() async {
+    await AuthService().signOut();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -79,25 +85,32 @@ class _MenuSection extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          ProfileMenuItem(title: "Activity"),
-          ProfileMenuItem(title: "Statistics"),
-          ProfileMenuItem(title: "Routes"),
+        children: [
+          const ProfileMenuItem(title: "Activity"),
+          const ProfileMenuItem(title: "Statistics"),
+          const ProfileMenuItem(title: "Routes"),
 
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
 
-          Text(
+          /// 🔴 LOGOUT
+          ProfileMenuItem(
+            title: "Logout",
+            color: Colors.redAccent,
+            onTap: _logout,
+          ),
+
+          const SizedBox(height: 20),
+
+          const Text(
             "This week",
             style: TextStyle(color: Colors.white, fontSize: 18),
           ),
 
-          SizedBox(height: 15),
+          const SizedBox(height: 15),
+          const WeeklyChart(),
 
-          WeeklyChart(),
-
-          SizedBox(height: 10),
-
-          Center(
+          const SizedBox(height: 10),
+          const Center(
             child: Text("Dec", style: TextStyle(color: Colors.white70)),
           ),
         ],

@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.werun_projct"
+    namespace = "com.mapp05.werun"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -20,7 +20,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.werun_projct"
+        applicationId = "com.mapp05.werun"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -34,11 +34,25 @@ android {
         }
     }
 
-    packaging {
+    // Workaround for mergeDebugJavaResource failures caused by duplicate
+    // files in dependencies (e.g. META-INF licenses, plugin resources).
+    // These duplicates trigger a com.google.common.base.VerifyException during
+    // the merge task. Excluding or picking first avoids the crash.
+    packagingOptions {
         resources {
+            // pickFirst is safer than exclude if a file is actually needed by
+            // some library. We limit to a few common problematic patterns.
+            pickFirsts += listOf(
+                "META-INF/**",
+                "LICENSE",
+                "LICENSE.txt",
+                "NOTICE",
+                "NOTICE.txt",
+                "dependencies.properties"
+            )
             excludes += listOf(
-                "META-INF/proguard/androidx-*.pro",
-                "META-INF/proguard/okhttp3.pro"
+                "META-INF/AL2.0",
+                "META-INF/LGPL2.1"
             )
         }
     }

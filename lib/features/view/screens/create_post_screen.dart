@@ -41,7 +41,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             ),
             const Text(
               'Create New Post',
-              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             GestureDetector(
               onTap: isLoading ? null : () => _savePost(),
@@ -50,19 +54,28 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   color: Colors.green,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: isLoading
                     ? const SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.black,
+                          ),
                           strokeWidth: 2,
                         ),
                       )
                     : const Text(
                         'Share',
-                        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14),
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
                       ),
               ),
             ),
@@ -109,67 +122,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               ),
               const SizedBox(height: 20),
 
-              Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2a2a2a),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Checkbox(
-                      value: shareToSuggested,
-                      onChanged: (value) {
-                        setState(() {
-                          shareToSuggested = value ?? false;
-                        });
-                      },
-                      fillColor: MaterialStateProperty.resolveWith((states) {
-                        if (states.contains(MaterialState.selected)) {
-                          return Colors.green;
-                        }
-                        return Colors.grey[700];
-                      }),
-                      side: BorderSide(color: Colors.grey[600]!),
-                    ),
-                    const SizedBox(width: 12),
-                    const Expanded(
-                      child: Text(
-                        'Also Share to Suggested Places?',
-                        style: TextStyle(color: Colors.white, fontSize: 14),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    GestureDetector(
-                      onTap: isLoading ? null : () => _savePost(),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.green,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                        child: isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text(
-                                'Share',
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
-                              ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
               const SizedBox(height: 20),
               const SizedBox(height: 30),
             ],
@@ -208,7 +160,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         description: description,
         tags: tags,
         privacy: selectedPrivacy,
-        imageUrl: selectedImageUrl ?? 'https://www.kku.ac.th/wp-content/uploads/2023/12/IMG_0832-scaled.jpg',
+        imageUrl:
+            selectedImageUrl ??
+            'https://www.kku.ac.th/wp-content/uploads/2023/12/IMG_0832-scaled.jpg',
         createdAt: DateTime.now(),
       );
 
@@ -227,7 +181,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
       debugPrint('[CreatePost] Navigating back to home');
       Navigator.of(context).pop();
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('✨ Post created successfully! ✨'),
@@ -237,7 +191,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       );
     } catch (e) {
       debugPrint('[CreatePost] Error: $e');
-      
+
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(

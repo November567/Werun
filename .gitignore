@@ -78,3 +78,7 @@ web/build/
 
 # Environment
 .env
+
+linux/flutter/
+windows/flutter/
+macos/Flutter/

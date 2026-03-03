@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../map/screens/map_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+import 'login_screen.dart';
+import '../services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -11,10 +15,46 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  final TextEditingController fullNameController = TextEditingController();
-  final TextEditingController nickNameController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController phoneController = TextEditingController();
+  final fullNameController = TextEditingController();
+  final nickNameController = TextEditingController();
+  final emailController = TextEditingController();
+  final phoneController = TextEditingController();
+  final passwordController = TextEditingController();
+
+  bool isLoading = false;
+
+  Future<void> _register() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => isLoading = true);
+
+    try {
+      final user = await AuthService().registerWithEmail(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+
+      await FirebaseFirestore.instance.collection('users').doc(user!.uid).set({
+        'fullName': fullNameController.text.trim(),
+        'nickName': nickNameController.text.trim(),
+        'email': emailController.text.trim(),
+        'phone': phoneController.text.trim(),
+        'createdAt': Timestamp.now(),
+      });
+
+      if (!mounted) return;
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message ?? 'Register failed')));
+    } catch (e) {
+      debugPrint('Unexpected register error: $e');
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +68,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                /// Title
                 const Text(
                   "Create Your Account",
                   style: TextStyle(
@@ -37,44 +76,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 6),
-                const Text(
-                  "Don’t worry, you can always change it later.",
-                  style: TextStyle(color: Colors.grey),
-                ),
-
-                const SizedBox(height: 30),
-
-                /// Avatar
-                Center(
-                  child: Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 45,
-                        backgroundColor: Colors.grey[800],
-                        child: const Icon(
-                          Icons.person,
-                          size: 50,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: CircleAvatar(
-                          radius: 14,
-                          backgroundColor: Colors.green,
-                          child: const Icon(
-                            Icons.edit,
-                            size: 14,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
                 const SizedBox(height: 30),
 
                 _buildInputField(
@@ -101,23 +102,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   hint: "Phone Number",
                   icon: Icons.phone,
                 ),
+                const SizedBox(height: 12),
+
+                _buildInputField(
+                  controller: passwordController,
+                  hint: "Password",
+                  icon: Icons.lock,
+                  obscureText: true,
+                ),
 
                 const Spacer(),
 
-                /// Buttons
                 Row(
                   children: [
                     Expanded(
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.grey[800],
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
+                          backgroundColor: const Color.fromARGB(
+                            255,
+                            255,
+                            255,
+                            255,
                           ),
                         ),
                         onPressed: () {
-                          Navigator.pop(context);
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const LoginScreen(),
+                            ),
+                          );
                         },
                         child: const Text("Back"),
                       ),
@@ -128,21 +142,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
                           foregroundColor: Colors.black,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
                         ),
-                        onPressed: () {
-                          if (_formKey.currentState!.validate()) {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const MapScreen(),
-                              ),
-                            );
-                          }
-                        },
-                        child: const Text("Continue"),
+                        onPressed: isLoading ? null : _register,
+                        child: isLoading
+                            ? const CircularProgressIndicator()
+                            : const Text("Continue"),
                       ),
                     ),
                   ],
@@ -159,9 +163,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     required TextEditingController controller,
     required String hint,
     IconData? icon,
+    bool obscureText = false,
   }) {
     return TextFormField(
       controller: controller,
+      obscureText: obscureText,
       style: const TextStyle(color: Colors.white),
       validator: (value) =>
           value == null || value.isEmpty ? "Required field" : null,

@@ -1,81 +1,100 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+// screens
+import 'components/bottom_navbar.dart';
+import 'features/auth/screens/login_screen.dart';
 import 'features/view/screens/home_screen.dart';
 import 'features/map/screens/map_screen.dart';
-import 'features/profile/screens/profile_screen.dart';
 import 'features/view/screens/view_screen.dart';
-import 'components/bottom_navbar.dart';
+import 'features/profile/screens/profile_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  try {
-    if (Firebase.apps.isEmpty) {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-      debugPrint('✅ Firebase initialized successfully');
-    } else {
-      debugPrint('ℹ️ Firebase already initialized, skipping');
-    }
-  } catch (e) {
-    debugPrint('⚠️ Firebase init error: $e');
-  }
+  await dotenv.load(fileName: ".env");
+  await Firebase.initializeApp();
 
-  runApp(const MyApp());
+  final SharedPreferencesWithCache prefs =
+      await SharedPreferencesWithCache.create(
+        cacheOptions: const SharedPreferencesWithCacheOptions(),
+      );
+
+  runApp(WeRunApp(prefs: prefs));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+class WeRunApp extends StatelessWidget {
+  const WeRunApp({super.key, required this.prefs});
+  final SharedPreferencesWithCache prefs;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'WeRun',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        brightness: Brightness.dark,
-      ),
-      home: const MainScreen(),
       debugShowCheckedModeBanner: false,
+      theme: ThemeData.dark(),
+      home: AuthGate(prefs: prefs),
+    );
+  }
+}
+
+class AuthGate extends StatelessWidget {
+  const AuthGate({super.key, required this.prefs});
+  final SharedPreferencesWithCache prefs;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            backgroundColor: Colors.black,
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (!snapshot.hasData) {
+          return const LoginScreen();
+        }
+
+        return MainScreen(prefs: prefs);
+      },
     );
   }
 }
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({Key? key}) : super(key: key);
+  const MainScreen({super.key, required this.prefs});
+  final SharedPreferencesWithCache prefs;
 
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
+  int _currentIndex = 1;
 
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const MapScreen(),
-    const _PlaceholderScreen(label: 'Start Run'),
-    const ViewScreen(),
-    const ProfileScreen(),
+  final List<Widget> _screens = const [
+    HomeScreen(),
+    MapScreen(),
+    _PlaceholderScreen(label: 'Start Run'),
+    ViewScreen(),
+    ProfileScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: WeRunBottomNavbar(
         currentIndex: _currentIndex,
         onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
+          setState(() => _currentIndex = index);
         },
       ),
     );
