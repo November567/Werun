@@ -14,55 +14,64 @@ class ProfileHeaderCard extends StatelessWidget {
       child: Column(
         children: [
           Row(
-            children: const [
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               CircleAvatar(
-                radius: 35,
+                radius: 45,
                 backgroundImage: NetworkImage(
                   "https://i.pravatar.cc/150?img=3",
                 ),
               ),
-              SizedBox(width: 20),
-
+              const SizedBox(width: 20),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       "Carly Mensch",
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 18,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
                       "Khonkaen Thailand",
-                      style: TextStyle(color: Colors.grey),
+                      style: const TextStyle(
+                        color: Colors.grey,
+                        fontSize: 14,
+                      ),
                     ),
+                    const SizedBox(height: 2),
                     Text(
                       "carly2544@hotmail.com",
-                      style: TextStyle(color: Colors.grey),
+                      style: const TextStyle(
+                        color: Colors.grey,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
               ),
-
               Text(
                 "Friend 300",
-                style: TextStyle(color: Colors.white70, fontSize: 13),
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 13,
+                ),
               ),
             ],
           ),
-
-          SizedBox(height: 10),
-          Divider(color: Colors.grey),
-          SizedBox(height: 15),
-
+          const SizedBox(height: 25),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _StatItem(title: "Total distance", value: "100 KM"),
+              _StatItem(
+                title: "Total distance",
+                value: "100 KM",
+                isHighlight: true,
+              ),
               _StatItem(title: "Total runs", value: "50"),
               _StatItem(title: "Average pace", value: "2 Km/hr"),
             ],
@@ -76,22 +85,35 @@ class ProfileHeaderCard extends StatelessWidget {
 class _StatItem extends StatelessWidget {
   final String title;
   final String value;
+  final bool isHighlight;
 
-  const _StatItem({required this.title, required this.value});
+  const _StatItem({
+    required this.title,
+    required this.value,
+    this.isHighlight = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: isHighlight ? const Color(0xFF00FF5F) : Colors.white,
             fontWeight: FontWeight.bold,
+            fontSize: isHighlight ? 22 : 16,
           ),
         ),
-        const SizedBox(height: 4),
-        Text(title, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+        const SizedBox(height: 6),
+        Text(
+          title,
+          style: const TextStyle(
+            color: Colors.grey,
+            fontSize: 12,
+          ),
+        ),
       ],
     );
   }
