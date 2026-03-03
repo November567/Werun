@@ -174,7 +174,7 @@ class _TagsSectionState extends State<TagsSection> {
                 Icon(Icons.location_on, color: Colors.green, size: 16),
                 const SizedBox(width: 8),
                 const Text(
-                  'จุดยุ่มสวนแคนปิง บ.ห.',
+                  'อุทยานสวนเกษตร มข.',
                   style: TextStyle(color: Colors.white, fontSize: 12),
                 ),
               ],
