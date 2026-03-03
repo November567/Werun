@@ -29,28 +29,21 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         backgroundColor: Colors.black,
         elevation: 0,
         automaticallyImplyLeading: false,
-        leading: GestureDetector(
-          onTap: () => Navigator.pop(context),
-          child: const Align(
-            alignment: Alignment.centerLeft,
-            child: Padding(
-              padding: EdgeInsets.only(left: 16),
-              child: Text(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: const Text(
                 'Cancel',
                 style: TextStyle(color: Colors.white, fontSize: 16),
               ),
             ),
-          ),
-        ),
-        title: const Text(
-          'Create New Post',
-          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: GestureDetector(
+            const Text(
+              'Create New Post',
+              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            GestureDetector(
               onTap: isLoading ? null : () => _savePost(),
               child: Container(
                 decoration: BoxDecoration(
@@ -73,8 +66,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       body: SingleChildScrollView(
         child: Padding(

@@ -15,45 +15,23 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.black,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const CreatePostScreen(),
+            ),
+          );
+        },
+        backgroundColor: Colors.green,
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // New Post Button
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const CreatePostScreen(),
-                    ),
-                  );
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      decoration: const BoxDecoration(
-                        color: Colors.green,
-                        shape: BoxShape.circle,
-                      ),
-                      padding: const EdgeInsets.all(12),
-                      child: const Icon(Icons.add, color: Colors.white, size: 28),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text(
-                      'New post',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            const SizedBox(height: 24),
 
             // Run History & Suggested Places
             SingleChildScrollView(
