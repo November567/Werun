@@ -90,4 +90,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'werun-bf356.firebasestorage.app',
     measurementId: 'G-8F3RT23H9W',
   );
+
 }

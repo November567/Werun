@@ -1,4 +1,4 @@
-package com.example.werun_projct
+package com.mapp05.werun
 
 import io.flutter.embedding.android.FlutterActivity
 
