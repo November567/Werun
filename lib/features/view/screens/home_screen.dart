@@ -3,6 +3,7 @@ import '../components/run_history_card.dart';
 import '../components/suggested_places_card.dart';
 import '../components/friend_activity_card.dart';
 import 'create_post_screen.dart';
+import 'view_detail_screen.dart'; // ✅ เพิ่ม
 import '../../models/post.dart';
 import '../../services/post_service.dart';
 
@@ -58,7 +59,8 @@ class HomeScreen extends StatelessWidget {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(
                       child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(Colors.green),
                       ),
                     );
                   }
@@ -91,39 +93,51 @@ class HomeScreen extends StatelessWidget {
                         .map(
                           (post) => Column(
                             children: [
-                              FriendActivityCard(
-                                name: post.userName,
-                                location: post.tags.isNotEmpty
-                                    ? post.tags.first
-                                    : 'Unknown Location',
-                                distance: post.tags.length > 1
-                                    ? post.tags[1]
-                                    : '0 km',
-                                duration: '1 hr',
-                                pace: '12:00/min/km',
-                                likes: post.likes,
-                                saves: post.saves,
-                                imageUrl: post.imageUrl,
-                                onLike: () async {
-                                  try {
-                                    await postService.likePost(post.id);
-                                  } catch (_) {}
+                              // ✅ ห่อด้วย GestureDetector
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          ViewDetailScreen(post: post),
+                                    ),
+                                  );
                                 },
-                                onUnlike: () async {
-                                  try {
-                                    await postService.unlikePost(post.id);
-                                  } catch (_) {}
-                                },
-                                onSave: () async {
-                                  try {
-                                    await postService.savePost(post.id);
-                                  } catch (_) {}
-                                },
-                                onUnsave: () async {
-                                  try {
-                                    await postService.unsavePost(post.id);
-                                  } catch (_) {}
-                                },
+                                child: FriendActivityCard(
+                                  name: post.userName,
+                                  location: post.tags.isNotEmpty
+                                      ? post.tags.first
+                                      : 'Unknown Location',
+                                  distance: post.tags.length > 1
+                                      ? post.tags[1]
+                                      : '0 km',
+                                  duration: '1 hr',
+                                  pace: '12:00/min/km',
+                                  likes: post.likes,
+                                  saves: post.saves,
+                                  imageUrl: post.imageUrl,
+                                  onLike: () async {
+                                    try {
+                                      await postService.likePost(post.id);
+                                    } catch (_) {}
+                                  },
+                                  onUnlike: () async {
+                                    try {
+                                      await postService.unlikePost(post.id);
+                                    } catch (_) {}
+                                  },
+                                  onSave: () async {
+                                    try {
+                                      await postService.savePost(post.id);
+                                    } catch (_) {}
+                                  },
+                                  onUnsave: () async {
+                                    try {
+                                      await postService.unsavePost(post.id);
+                                    } catch (_) {}
+                                  },
+                                ),
                               ),
                               const SizedBox(height: 20),
                             ],

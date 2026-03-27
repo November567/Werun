@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../screens/view_detail_screen.dart';
 
 class ViewGridItem extends StatelessWidget {
   final String imageUrl;
@@ -9,20 +8,18 @@ class ViewGridItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ViewDetailScreen(imageUrl: imageUrl, title: title),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: AspectRatio(
+        aspectRatio: 1,
+        child: Image.network(
+          imageUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Container(
+            color: Colors.grey.shade800,
+            child: const Icon(Icons.broken_image,
+                color: Colors.white54, size: 32),
           ),
-        );
-      },
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: AspectRatio(
-          aspectRatio: 1,
-          child: Image.network(imageUrl, fit: BoxFit.cover),
         ),
       ),
     );

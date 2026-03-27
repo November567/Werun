@@ -21,6 +21,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   List<String> tags = ['Khon Kaen', 'Night Run'];
 
   bool isLoading = false;
+
+  // ✅ เก็บ URL ที่ MediaSection อัปโหลดเสร็จแล้วส่งมาให้
+  // null = ยังไม่ได้เลือกรูป
   String? selectedImageUrl;
 
   final PostService _postService = PostService();
@@ -52,7 +55,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               ),
             ),
             GestureDetector(
-              onTap: isLoading ? null : () => _savePost(),
+              onTap: isLoading ? null : _savePost,
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.green,
@@ -67,9 +70,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.black,
-                          ),
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.black),
                           strokeWidth: 2,
                         ),
                       )
@@ -93,6 +95,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             const RunRouteCard(),
             const SizedBox(height: 20),
 
+            // ✅ MediaSection จะ upload เสร็จก่อน แล้วส่ง URL จริงมาให้
             MediaSection(
               onImageChanged: (url) {
                 setState(() => selectedImageUrl = url);
@@ -117,12 +120,15 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     );
   }
 
-  // ==========================
-  // SAVE POST (FIXED)
-  // ==========================
   Future<void> _savePost() async {
     if (description.trim().isEmpty) {
       _showSnack('❌ Please add a description', Colors.red);
+      return;
+    }
+
+    // ✅ บังคับให้เลือกรูปก่อน Share (ถ้าต้องการ optional ให้ลบ block นี้ออก)
+    if (selectedImageUrl == null) {
+      _showSnack('❌ Please add a photo', Colors.red);
       return;
     }
 
@@ -135,19 +141,16 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     setState(() => isLoading = true);
 
     try {
-      // 🔹 ดึงข้อมูล user จาก Firestore
       final userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
           .get();
 
-      if (!userDoc.exists) {
-        throw Exception('User data not found');
-      }
+      if (!userDoc.exists) throw Exception('User data not found');
 
       final userData = userDoc.data()!;
-
-      final postId = FirebaseFirestore.instance.collection('posts').doc().id;
+      final postId =
+          FirebaseFirestore.instance.collection('posts').doc().id;
 
       final post = Post(
         id: postId,
@@ -156,18 +159,15 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         description: description.trim(),
         tags: tags,
         privacy: selectedPrivacy,
-        imageUrl:
-            selectedImageUrl ??
-            'https://www.kku.ac.th/wp-content/uploads/2023/12/IMG_0832-scaled.jpg',
+        // ✅ ใช้ URL จริงที่อัปโหลดแล้ว — ไม่มี hardcode fallback อีกต่อไป
+        imageUrl: selectedImageUrl!,
         createdAt: DateTime.now(),
       );
 
       await _postService.createPost(post);
 
       if (!mounted) return;
-
       Navigator.pop(context);
-
       _showSnack('✨ Post created successfully!', Colors.green);
     } catch (e) {
       debugPrint('[CreatePost] Error: $e');
@@ -179,8 +179,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   }
 
   void _showSnack(String text, Color color) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(text), backgroundColor: color));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(text), backgroundColor: color),
+    );
   }
 }

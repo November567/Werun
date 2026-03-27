@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../models/post.dart';
 
 class ViewDetailScreen extends StatefulWidget {
-  final String imageUrl;
-  final String title;
+  final Post post;
 
-  const ViewDetailScreen({
-    super.key,
-    required this.imageUrl,
-    required this.title,
-  });
+  const ViewDetailScreen({super.key, required this.post});
 
   @override
   State<ViewDetailScreen> createState() => _ViewDetailScreenState();
@@ -17,56 +14,59 @@ class ViewDetailScreen extends StatefulWidget {
 
 class _ViewDetailScreenState extends State<ViewDetailScreen>
     with SingleTickerProviderStateMixin {
-  /// 🗂 เก็บข้อมูลแยกตามรูป
-  static Map<String, int> likeStorage = {};
-  static Map<String, List<String>> commentStorage = {};
-
   final TextEditingController _commentController = TextEditingController();
-
   bool isLiked = false;
+  late int likeCount;
+  late List<String> comments;
 
   late AnimationController _likeController;
   late Animation<double> _likeAnimation;
 
   String currentUser = "Carly Mensch";
 
-  int get likeCount => likeStorage[widget.imageUrl] ?? 20;
-  List<String> get comments => commentStorage[widget.imageUrl] ?? [];
-
   @override
   void initState() {
     super.initState();
-
-    likeStorage.putIfAbsent(widget.imageUrl, () => 20);
-    commentStorage.putIfAbsent(widget.imageUrl, () => []);
+    likeCount = widget.post.likes;
+    comments = List<String>.from(widget.post.comments);
 
     _likeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-
     _likeAnimation = Tween<double>(begin: 1.0, end: 1.4).animate(
       CurvedAnimation(parent: _likeController, curve: Curves.elasticOut),
     );
   }
 
-  void _toggleLike() {
+  Future<void> _toggleLike() async {
     setState(() {
       if (isLiked) {
-        likeStorage[widget.imageUrl] = likeStorage[widget.imageUrl]! - 1;
+        likeCount--;
       } else {
-        likeStorage[widget.imageUrl] = likeStorage[widget.imageUrl]! + 1;
-        _likeController.forward().then((_) {
-          _likeController.reverse();
-        });
+        likeCount++;
+        _likeController.forward().then((_) => _likeController.reverse());
       }
       isLiked = !isLiked;
     });
+
+    await FirebaseFirestore.instance
+        .collection('posts')
+        .doc(widget.post.id)
+        .update({'likes': likeCount});
   }
 
-  void _addComment(String text) {
+  Future<void> _addComment(String text) async {
+    final newComment = "$currentUser: $text";
     setState(() {
-      commentStorage[widget.imageUrl]!.add("$currentUser: $text");
+      comments.add(newComment);
+    });
+
+    await FirebaseFirestore.instance
+        .collection('posts')
+        .doc(widget.post.id)
+        .update({
+      'comments': FieldValue.arrayUnion([newComment]),
     });
   }
 
@@ -79,6 +79,8 @@ class _ViewDetailScreenState extends State<ViewDetailScreen>
 
   @override
   Widget build(BuildContext context) {
+    final post = widget.post;
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
@@ -95,16 +97,16 @@ class _ViewDetailScreenState extends State<ViewDetailScreen>
                       icon: const Icon(Icons.arrow_back, color: Colors.white),
                       onPressed: () => Navigator.pop(context),
                     ),
-                    const CircleAvatar(
+                    CircleAvatar(
                       radius: 20,
-                      backgroundImage: NetworkImage(
-                        "https://picsum.photos/100",
-                      ),
+                      backgroundImage: post.userAvatar.isNotEmpty
+                          ? NetworkImage(post.userAvatar)
+                          : const NetworkImage("https://picsum.photos/100"),
                     ),
                     const SizedBox(width: 10),
-                    const Text(
-                      "Mr.Gunny",
-                      style: TextStyle(
+                    Text(
+                      post.userName, // ✅ userName
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -120,13 +122,14 @@ class _ViewDetailScreenState extends State<ViewDetailScreen>
               ),
 
               /// 📍 LOCATION
-              const Padding(
-                padding: EdgeInsets.only(left: 70, bottom: 10),
-                child: Text(
-                  "Location: อุทยานสวนเกษตร มข.",
-                  style: TextStyle(color: Colors.white54, fontSize: 12),
+              if (post.location.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(left: 70, bottom: 10),
+                  child: Text(
+                    "Location: ${post.location}",
+                    style: const TextStyle(color: Colors.white54, fontSize: 12),
+                  ),
                 ),
-              ),
 
               /// 🖼 CENTER IMAGE
               Center(
@@ -135,14 +138,19 @@ class _ViewDetailScreenState extends State<ViewDetailScreen>
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(20),
                     child: Image.network(
-                      widget.imageUrl,
+                      post.imageUrl,
                       width: MediaQuery.of(context).size.width * 0.9,
                       fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        height: 200,
+                        color: Colors.grey.shade800,
+                        child: const Icon(Icons.broken_image,
+                            color: Colors.white54, size: 48),
+                      ),
                     ),
                   ),
                 ),
               ),
-
               const SizedBox(height: 16),
 
               /// 📊 STATS CARD
@@ -155,54 +163,39 @@ class _ViewDetailScreenState extends State<ViewDetailScreen>
                 ),
                 child: Column(
                   children: [
-                    /// 📍 RUN STATS ROW (มีไอคอน)
+                    /// 📍 RUN STATS ROW
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: const [
+                      children: [
                         Row(
                           children: [
-                            Icon(
-                              Icons.location_on,
-                              color: Colors.green,
-                              size: 18,
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              "5.32 Km",
-                              style: TextStyle(color: Colors.white),
-                            ),
+                            const Icon(Icons.location_on,
+                                color: Colors.green, size: 18),
+                            const SizedBox(width: 4),
+                            Text(post.distance,
+                                style: const TextStyle(color: Colors.white)),
                           ],
                         ),
-
                         Row(
                           children: [
-                            Icon(
-                              Icons.access_time,
-                              color: Colors.orange,
-                              size: 18,
-                            ),
-                            SizedBox(width: 4),
-                            Text("1 Hr", style: TextStyle(color: Colors.white)),
+                            const Icon(Icons.access_time,
+                                color: Colors.orange, size: 18),
+                            const SizedBox(width: 4),
+                            Text(post.duration,
+                                style: const TextStyle(color: Colors.white)),
                           ],
                         ),
-
                         Row(
                           children: [
-                            Icon(
-                              Icons.directions_run,
-                              color: Colors.blue,
-                              size: 18,
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              "12:00min/km",
-                              style: TextStyle(color: Colors.white),
-                            ),
+                            const Icon(Icons.directions_run,
+                                color: Colors.blue, size: 18),
+                            const SizedBox(width: 4),
+                            Text(post.pace,
+                                style: const TextStyle(color: Colors.white)),
                           ],
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 10),
                     const Divider(color: Colors.white24),
                     const SizedBox(height: 10),
@@ -221,7 +214,8 @@ class _ViewDetailScreenState extends State<ViewDetailScreen>
                                   isLiked
                                       ? Icons.thumb_up
                                       : Icons.thumb_up_outlined,
-                                  color: isLiked ? Colors.green : Colors.white,
+                                  color:
+                                      isLiked ? Colors.green : Colors.white,
                                 ),
                                 onPressed: _toggleLike,
                               ),
@@ -245,14 +239,14 @@ class _ViewDetailScreenState extends State<ViewDetailScreen>
                           ],
                         ),
 
-                        /// 🔗 SHARE (แชร์จริง)
+                        /// 🔗 SHARE
                         GestureDetector(
                           onTap: () {
                             Share.share(
                               "Check out this run!\n\n"
-                              "Distance: 5.32 Km\n"
-                              "Time: 1 Hr\n"
-                              "Pace: 12:00min/km\n\n"
+                              "Distance: ${post.distance}\n"
+                              "Time: ${post.duration}\n"
+                              "Pace: ${post.pace}\n\n"
                               "Shared from WeRun App 🚀",
                             );
                           },
@@ -260,10 +254,8 @@ class _ViewDetailScreenState extends State<ViewDetailScreen>
                             children: [
                               Icon(Icons.share, color: Colors.white),
                               SizedBox(width: 4),
-                              Text(
-                                "Share",
-                                style: TextStyle(color: Colors.white),
-                              ),
+                              Text("Share",
+                                  style: TextStyle(color: Colors.white)),
                             ],
                           ),
                         ),
@@ -277,13 +269,12 @@ class _ViewDetailScreenState extends State<ViewDetailScreen>
                   ],
                 ),
               ),
+
               /// 💬 COMMENT LIST
               ...comments.map(
                 (c) => Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   child: Text(c, style: const TextStyle(color: Colors.white)),
                 ),
               ),
@@ -297,7 +288,8 @@ class _ViewDetailScreenState extends State<ViewDetailScreen>
                   children: [
                     Expanded(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
                           color: Colors.grey.shade800,
                           borderRadius: BorderRadius.circular(30),

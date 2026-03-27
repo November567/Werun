@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../models/post.dart'; // ✅ เปลี่ยนจาก post_model.dart
 import '../components/view_grid_item.dart';
+import 'view_detail_screen.dart';
 
 class ViewScreen extends StatefulWidget {
   const ViewScreen({super.key});
@@ -10,42 +13,51 @@ class ViewScreen extends StatefulWidget {
 
 class _ViewScreenState extends State<ViewScreen> {
   final TextEditingController _searchController = TextEditingController();
-
-  final List<Map<String, String>> _allItems = [
-    {"title": "girl portrait", "url": "https://picsum.photos/400?1"},
-    {"title": "cat cute", "url": "https://picsum.photos/400?2"},
-    {"title": "car luxury", "url": "https://picsum.photos/400?3"},
-    {"title": "mountain view", "url": "https://picsum.photos/400?4"},
-    {"title": "dog puppy", "url": "https://picsum.photos/400?5"},
-    {"title": "anime art", "url": "https://picsum.photos/400?6"},
-    {"title": "city night", "url": "https://picsum.photos/400?7"},
-    {"title": "food sushi", "url": "https://picsum.photos/400?8"},
-    {"title": "travel beach", "url": "https://picsum.photos/400?9"},
-    {"title": "fashion model", "url": "https://picsum.photos/400?10"},
-    {"title": "fitness gym", "url": "https://picsum.photos/400?11"},
-    {"title": "sunset sky", "url": "https://picsum.photos/400?12"},
-  ];
-
-  List<Map<String, String>> _filteredItems = [];
+  List<Post> _allPosts = [];
+  List<Post> _filteredPosts = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _filteredItems = _allItems;
-
+    _fetchPosts();
     _searchController.addListener(() {
       _filterSearch(_searchController.text);
     });
   }
 
+  Future<void> _fetchPosts() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('posts')
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      final posts = snapshot.docs
+          .map((doc) => Post.fromJson(doc.data())) // ✅ fromJson แทน fromMap
+          .toList();
+
+      setState(() {
+        _allPosts = posts;
+        _filteredPosts = posts;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      debugPrint('Error fetching posts: $e');
+    }
+  }
+
   void _filterSearch(String query) {
-    final results = _allItems.where((item) {
-      final title = item["title"]!.toLowerCase();
-      return title.contains(query.toLowerCase());
+    final results = _allPosts.where((post) {
+      final title = post.title.toLowerCase();
+      final username = post.userName.toLowerCase(); // ✅ userName
+      return title.contains(query.toLowerCase()) ||
+          username.contains(query.toLowerCase());
     }).toList();
 
     setState(() {
-      _filteredItems = results;
+      _filteredPosts = results;
     });
   }
 
@@ -62,6 +74,7 @@ class _ViewScreenState extends State<ViewScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            // 🔍 Search Bar
             Padding(
               padding: const EdgeInsets.all(12),
               child: TextField(
@@ -70,7 +83,8 @@ class _ViewScreenState extends State<ViewScreen> {
                 decoration: InputDecoration(
                   hintText: "ค้นหา",
                   hintStyle: const TextStyle(color: Colors.white54),
-                  prefixIcon: const Icon(Icons.search, color: Colors.white54),
+                  prefixIcon:
+                      const Icon(Icons.search, color: Colors.white54),
                   filled: true,
                   fillColor: Colors.grey.shade900,
                   contentPadding: const EdgeInsets.symmetric(vertical: 0),
@@ -81,22 +95,53 @@ class _ViewScreenState extends State<ViewScreen> {
                 ),
               ),
             ),
+
+            // 📷 Grid
             Expanded(
-              child: GridView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                itemCount: _filteredItems.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                ),
-                itemBuilder: (context, index) {
-                  return ViewGridItem(
-                    imageUrl: _filteredItems[index]["url"]!,
-                    title: _filteredItems[index]["title"]!,
-                  );
-                },
-              ),
+              child: _isLoading
+                  ? const Center(
+                      child:
+                          CircularProgressIndicator(color: Colors.green),
+                    )
+                  : _filteredPosts.isEmpty
+                      ? const Center(
+                          child: Text(
+                            'ไม่พบโพสต์',
+                            style: TextStyle(color: Colors.white54),
+                          ),
+                        )
+                      : RefreshIndicator(
+                          onRefresh: _fetchPosts,
+                          color: Colors.green,
+                          child: GridView.builder(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            itemCount: _filteredPosts.length,
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              crossAxisSpacing: 8,
+                              mainAxisSpacing: 8,
+                            ),
+                            itemBuilder: (context, index) {
+                              final post = _filteredPosts[index];
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          ViewDetailScreen(post: post),
+                                    ),
+                                  );
+                                },
+                                child: ViewGridItem(
+                                  imageUrl: post.imageUrl,
+                                  title: post.title,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
             ),
           ],
         ),
