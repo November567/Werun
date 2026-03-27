@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../components/createPost/run_route_card.dart';
 import '../components/createPost/media_section.dart';
 import '../components/createPost/tags_section.dart';
@@ -14,11 +17,12 @@ class CreatePostScreen extends StatefulWidget {
 
 class _CreatePostScreenState extends State<CreatePostScreen> {
   String selectedPrivacy = 'public';
-  bool shareToSuggested = false;
   String description = '';
   List<String> tags = ['Khon Kaen', 'Night Run'];
+
   bool isLoading = false;
   String? selectedImageUrl;
+
   final PostService _postService = PostService();
 
   @override
@@ -83,81 +87,73 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         ),
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          child: Column(
-            children: [
-              RunRouteCard(),
-              const SizedBox(height: 20),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            const RunRouteCard(),
+            const SizedBox(height: 20),
 
-              MediaSection(
-                onImageChanged: (url) {
-                  setState(() {
-                    selectedImageUrl = url;
-                  });
-                  debugPrint('Image URL updated: $url');
-                },
-              ),
-              const SizedBox(height: 20),
+            MediaSection(
+              onImageChanged: (url) {
+                setState(() => selectedImageUrl = url);
+              },
+            ),
 
-              TagsSection(
-                tags: tags,
-                onTagsChanged: (newTags) {
-                  setState(() {
-                    tags = newTags;
-                  });
-                },
-                description: description,
-                onDescriptionChanged: (newDescription) {
-                  setState(() {
-                    description = newDescription;
-                  });
-                },
-                selectedPrivacy: selectedPrivacy,
-                onPrivacyChanged: (value) {
-                  setState(() {
-                    selectedPrivacy = value;
-                  });
-                },
-              ),
-              const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-              const SizedBox(height: 20),
-              const SizedBox(height: 30),
-            ],
-          ),
+            TagsSection(
+              tags: tags,
+              description: description,
+              selectedPrivacy: selectedPrivacy,
+              onTagsChanged: (value) => setState(() => tags = value),
+              onDescriptionChanged: (value) =>
+                  setState(() => description = value),
+              onPrivacyChanged: (value) =>
+                  setState(() => selectedPrivacy = value),
+            ),
+          ],
         ),
       ),
     );
   }
 
+  // ==========================
+  // SAVE POST (FIXED)
+  // ==========================
   Future<void> _savePost() async {
-    if (description.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('❌ Please add a description'),
-          backgroundColor: Colors.red,
-        ),
-      );
+    if (description.trim().isEmpty) {
+      _showSnack('❌ Please add a description', Colors.red);
       return;
     }
 
-    setState(() {
-      isLoading = true;
-    });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      _showSnack('❌ Please login again', Colors.red);
+      return;
+    }
+
+    setState(() => isLoading = true);
 
     try {
-      debugPrint('[CreatePost] Creating post...');
-      debugPrint('[CreatePost] Description: $description');
-      debugPrint('[CreatePost] Tags: $tags');
-      debugPrint('[CreatePost] Privacy: $selectedPrivacy');
-      debugPrint('[CreatePost] Image URL: $selectedImageUrl');
+      // 🔹 ดึงข้อมูล user จาก Firestore
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (!userDoc.exists) {
+        throw Exception('User data not found');
+      }
+
+      final userData = userDoc.data()!;
+
+      final postId = FirebaseFirestore.instance.collection('posts').doc().id;
 
       final post = Post(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        userId: 'user123',
-        userName: 'Mr.Gunny',
-        description: description,
+        id: postId,
+        userId: user.uid,
+        userName: userData['nickName'] ?? 'Unknown',
+        description: description.trim(),
         tags: tags,
         privacy: selectedPrivacy,
         imageUrl:
@@ -166,47 +162,25 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         createdAt: DateTime.now(),
       );
 
-      debugPrint('[CreatePost] Saving to Firebase...');
       await _postService.createPost(post);
-      debugPrint('[CreatePost] Post saved successfully!');
-
-      if (!mounted) {
-        debugPrint('[CreatePost] Widget not mounted, skipping navigation');
-        return;
-      }
-
-      await Future.delayed(const Duration(milliseconds: 500));
 
       if (!mounted) return;
 
-      debugPrint('[CreatePost] Navigating back to home');
-      Navigator.of(context).pop();
+      Navigator.pop(context);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✨ Post created successfully! ✨'),
-          duration: Duration(seconds: 2),
-          backgroundColor: Colors.green,
-        ),
-      );
+      _showSnack('✨ Post created successfully!', Colors.green);
     } catch (e) {
       debugPrint('[CreatePost] Error: $e');
-
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('❌ Error: $e'),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 3),
-        ),
-      );
+      _showSnack('❌ $e', Colors.red);
     } finally {
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
+      if (mounted) setState(() => isLoading = false);
     }
+  }
+
+  void _showSnack(String text, Color color) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(text), backgroundColor: color));
   }
 }
