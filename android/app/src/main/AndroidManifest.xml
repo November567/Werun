@@ -6,9 +6,6 @@
         android:label="werun_projct"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
-        <meta-data
-        android:name="com.google.android.geo.API_KEY"
-        android:value="AIzaSyD68DnWGryeBc0mhYfZAUitmunIJQkH0fo"/>
         <activity
             android:name="com.mapp05.werun.MainActivity"
             android:exported="true"

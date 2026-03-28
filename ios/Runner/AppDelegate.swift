@@ -2,8 +2,6 @@ import Flutter
 import UIKit
 import GoogleMaps
 
-GMSServices.provideAPIKey("AIzaSyD68DnWGryeBc0mhYfZAUitmunIJQkH0fo")
-
 @main
 @objc class AppDelegate: FlutterAppDelegate {
   override func application(
