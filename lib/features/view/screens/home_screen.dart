@@ -30,7 +30,7 @@ class HomeScreen extends StatelessWidget {
       ),
 
       // ✅ เปลี่ยนจาก endFloat → startFloat (ย้ายไปซ้ายล่าง)
-      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
 
       body: SingleChildScrollView(
         child: Column(
