@@ -133,7 +133,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                           );
                         },
-                        child: const Text("Back"),
+                        child: const Text(
+                          "Back",
+                          style: TextStyle(color: Colors.black),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),

@@ -50,19 +50,15 @@ class _TopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: const [
-        Icon(Icons.menu, color: Colors.white, size: 28),
+        Icon(Icons.menu, color: Colors.white),
         SizedBox(width: 15),
         Expanded(
           child: Text(
             "Search Locations",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
+            style: TextStyle(color: Colors.white, fontSize: 16),
           ),
         ),
-        Icon(Icons.search, color: Colors.white, size: 28),
+        Icon(Icons.search, color: Colors.white),
       ],
     );
   }
@@ -91,13 +87,10 @@ class _MenuSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const ProfileMenuItem(title: "Activity"),
-          const Divider(color: Colors.white10, height: 1),
           const ProfileMenuItem(title: "Statistics"),
-          const Divider(color: Colors.white10, height: 1),
           const ProfileMenuItem(title: "Routes"),
-          const SizedBox(height: 10),
-          const Divider(color: Colors.white10, height: 1),
-          const SizedBox(height: 10),
+
+          const SizedBox(height: 20),
 
           /// 🔴 LOGOUT
           ProfileMenuItem(
@@ -106,12 +99,20 @@ class _MenuSection extends StatelessWidget {
             onTap: _logout,
           ),
 
-          const SizedBox(height: 25),
+          const SizedBox(height: 20),
 
-          /// Weekly Chart
-          const WeeklyChart(),
+          const Text(
+            "This week",
+            style: TextStyle(color: Colors.white, fontSize: 18),
+          ),
 
           const SizedBox(height: 15),
+          const WeeklyChart(),
+
+          const SizedBox(height: 10),
+          const Center(
+            child: Text("Dec", style: TextStyle(color: Colors.white70)),
+          ),
         ],
       ),
     );
