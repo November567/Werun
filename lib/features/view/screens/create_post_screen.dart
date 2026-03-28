@@ -9,7 +9,7 @@ import '../../models/post.dart';
 import '../../services/post_service.dart';
 
 class CreatePostScreen extends StatefulWidget {
-  const CreatePostScreen({Key? key}) : super(key: key);
+  const CreatePostScreen({super.key});
 
   @override
   State<CreatePostScreen> createState() => _CreatePostScreenState();
@@ -97,9 +97,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 description: description,
                 tags: tags,
                 privacy: selectedPrivacy,
-                imageUrl: selectedImageUrl ?? '',
+                imageUrl: selectedImageUrl ?? 'https://picsum.photos/400/200',
                 createdAt: DateTime.now(),
               ),
+              isLiked: false, // ✅ เพิ่มตรงนี้
               onLike: () {},
               onTap: () {},
             ),
@@ -154,6 +155,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           .collection('users')
           .doc(user.uid)
           .get();
+
+      if (!userDoc.exists) {
+        throw Exception("User not found");
+      }
 
       final userData = userDoc.data()!;
 

@@ -14,21 +14,27 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final Map<String, TextEditingController> _controllers = {};
+  final Set<String> likedPosts = {};
 
-  /// 👍 LIKE
+  /// 👍 LIKE toggle
   Future<void> _likePost(Post post) async {
+    final isLiked = likedPosts.contains(post.id);
+
     await FirebaseFirestore.instance.collection('posts').doc(post.id).update({
-      'likes': FieldValue.increment(1),
+      'likes': FieldValue.increment(isLiked ? -1 : 1),
+    });
+
+    setState(() {
+      isLiked ? likedPosts.remove(post.id) : likedPosts.add(post.id);
     });
   }
 
-  /// 💬 ADD COMMENT
+  /// 💬 COMMENT
   Future<void> _addComment(Post post) async {
     final controller = _controllers[post.id];
-    if (controller == null || controller.text.trim().isEmpty) return;
+    if (controller == null || controller.text.isEmpty) return;
 
-    final text = controller.text.trim();
-    final newComment = "You: $text";
+    final newComment = "You: ${controller.text}";
 
     await FirebaseFirestore.instance.collection('posts').doc(post.id).update({
       'comments': FieldValue.arrayUnion([newComment]),
@@ -37,11 +43,9 @@ class _HomeScreenState extends State<HomeScreen> {
     controller.clear();
   }
 
-  TextEditingController _getController(String postId) {
-    if (!_controllers.containsKey(postId)) {
-      _controllers[postId] = TextEditingController();
-    }
-    return _controllers[postId]!;
+  TextEditingController _getController(String id) {
+    _controllers.putIfAbsent(id, () => TextEditingController());
+    return _controllers[id]!;
   }
 
   @override
@@ -56,44 +60,32 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('posts')
             .orderBy('createdAt', descending: true)
             .snapshots(),
-
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(
-              child: Text(
-                "No posts yet",
-                style: TextStyle(color: Colors.white54),
-              ),
-            );
-          }
-
-          final posts = snapshot.data!.docs.map((doc) {
-            return Post.fromFirestore(doc);
-          }).toList();
+          final posts = snapshot.data!.docs
+              .map((doc) => Post.fromFirestore(doc))
+              .toList();
 
           return ListView.builder(
             padding: const EdgeInsets.all(12),
             itemCount: posts.length,
             itemBuilder: (context, index) {
               final post = posts[index];
-              final controller = _getController(post.id);
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  /// 🔥 CARD
                   RunRouteCard(
                     post: post,
+                    isLiked: likedPosts.contains(post.id),
                     onLike: () => _likePost(post),
                     onTap: () {
                       Navigator.push(
@@ -105,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                   ),
 
-                  /// 💬 COMMENT LIST (แสดง 2 อันล่าสุด)
+                  /// 💬 COMMENT ล่าสุด
                   ...post.comments
                       .take(2)
                       .map(
@@ -121,7 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
 
-                  /// ✍️ COMMENT INPUT
+                  /// ✍️ INPUT
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
@@ -130,20 +122,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Row(
                       children: [
                         Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[800],
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: TextField(
-                              controller: controller,
-                              style: const TextStyle(color: Colors.white),
-                              decoration: const InputDecoration(
-                                hintText: "Add a comment...",
-                                hintStyle: TextStyle(color: Colors.white54),
-                                border: InputBorder.none,
-                              ),
+                          child: TextField(
+                            controller: _getController(post.id),
+                            style: const TextStyle(color: Colors.white),
+                            decoration: const InputDecoration(
+                              hintText: "Add comment...",
+                              hintStyle: TextStyle(color: Colors.white54),
+                              border: InputBorder.none,
                             ),
                           ),
                         ),
@@ -154,8 +139,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                   ),
-
-                  const SizedBox(height: 10),
                 ],
               );
             },

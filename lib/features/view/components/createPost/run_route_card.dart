@@ -5,18 +5,20 @@ class RunRouteCard extends StatelessWidget {
   final Post post;
   final VoidCallback onLike;
   final VoidCallback onTap;
+  final bool isLiked;
 
   const RunRouteCard({
     super.key,
     required this.post,
     required this.onLike,
     required this.onTap,
+    required this.isLiked,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap, // 🔥 กดทั้ง card
+      onTap: onTap,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
@@ -28,25 +30,20 @@ class RunRouteCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             /// 🖼 IMAGE
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
-              ),
-              child: Image.network(
-                post.imageUrl.isNotEmpty
-                    ? post.imageUrl
-                    : 'https://via.placeholder.com/300',
+            Image.network(
+              post.imageUrl.isNotEmpty
+                  ? post.imageUrl
+                  : 'https://via.placeholder.com/300',
+              height: 200,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
                 height: 200,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  height: 200,
-                  color: Colors.grey[800],
-                  child: const Icon(
-                    Icons.broken_image,
-                    color: Colors.white54,
-                    size: 48,
-                  ),
+                color: Colors.grey[800],
+                child: const Icon(
+                  Icons.broken_image,
+                  color: Colors.white54,
+                  size: 48,
                 ),
               ),
             ),
@@ -57,7 +54,7 @@ class RunRouteCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  /// 🧑 USER
+                  /// 👤 USER
                   Row(
                     children: [
                       CircleAvatar(
@@ -96,9 +93,7 @@ class RunRouteCard extends StatelessWidget {
                         post.distance,
                         style: const TextStyle(color: Colors.white),
                       ),
-
                       const SizedBox(width: 16),
-
                       const Icon(
                         Icons.schedule,
                         color: Colors.orange,
@@ -109,9 +104,7 @@ class RunRouteCard extends StatelessWidget {
                         post.duration,
                         style: const TextStyle(color: Colors.white),
                       ),
-
                       const SizedBox(width: 16),
-
                       const Icon(
                         Icons.directions_run,
                         color: Colors.blue,
@@ -127,7 +120,6 @@ class RunRouteCard extends StatelessWidget {
 
                   const SizedBox(height: 10),
 
-                  /// 📝 DESCRIPTION
                   if (post.description.isNotEmpty)
                     Text(
                       post.description,
@@ -135,7 +127,6 @@ class RunRouteCard extends StatelessWidget {
                     ),
 
                   const SizedBox(height: 10),
-
                   const Divider(color: Colors.white24),
 
                   /// 👍 LIKE + 💬 COMMENT
@@ -145,9 +136,11 @@ class RunRouteCard extends StatelessWidget {
                       Row(
                         children: [
                           IconButton(
-                            icon: const Icon(
-                              Icons.thumb_up,
-                              color: Colors.white,
+                            icon: Icon(
+                              isLiked
+                                  ? Icons.thumb_up
+                                  : Icons.thumb_up_outlined,
+                              color: isLiked ? Colors.green : Colors.white,
                             ),
                             onPressed: onLike,
                           ),
@@ -157,7 +150,6 @@ class RunRouteCard extends StatelessWidget {
                           ),
                         ],
                       ),
-
                       Row(
                         children: [
                           const Icon(Icons.comment, color: Colors.white),
