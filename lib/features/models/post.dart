@@ -39,9 +39,10 @@ class Post {
     this.comments = const [],
   });
 
+  /// ✅ SAVE → Firestore
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
+      // ❌ ลบ id ออก
       'userId': userId,
       'userName': userName,
       'userAvatar': userAvatar,
@@ -63,9 +64,11 @@ class Post {
 
   Map<String, dynamic> toMap() => toJson();
 
+  /// ✅ JSON → Post
   factory Post.fromJson(Map<String, dynamic> json) {
     DateTime createdAt;
     final raw = json['createdAt'];
+
     if (raw is Timestamp) {
       createdAt = raw.toDate();
     } else if (raw is String) {
@@ -96,4 +99,33 @@ class Post {
   }
 
   factory Post.fromMap(Map<String, dynamic> map) => Post.fromJson(map);
+
+  /// 🔥 สำคัญ: Firestore → Post
+  factory Post.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+
+    return Post(
+      id: doc.id, // ✅ ใช้ doc.id จริง
+      userId: data['userId'] ?? '',
+      userName: data['userName'] ?? '',
+      userAvatar: data['userAvatar'] ?? '',
+      title: data['title'] ?? '',
+      description: data['description'] ?? '',
+      tags: List<String>.from(data['tags'] ?? []),
+      privacy: data['privacy'] ?? 'public',
+      imageUrl: data['imageUrl'] ?? '',
+      location: data['location'] ?? '',
+      distance: data['distance'] ?? '',
+      duration: data['duration'] ?? '',
+      pace: data['pace'] ?? '',
+
+      createdAt: (data['createdAt'] is Timestamp)
+          ? (data['createdAt'] as Timestamp).toDate()
+          : DateTime.now(),
+
+      likes: data['likes'] ?? 0,
+      saves: data['saves'] ?? 0,
+      comments: List<String>.from(data['comments'] ?? []),
+    );
+  }
 }

@@ -21,9 +21,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   List<String> tags = ['Khon Kaen', 'Night Run'];
 
   bool isLoading = false;
-
-  // ✅ เก็บ URL ที่ MediaSection อัปโหลดเสร็จแล้วส่งมาให้
-  // null = ยังไม่ได้เลือกรูป
   String? selectedImageUrl;
 
   final PostService _postService = PostService();
@@ -32,10 +29,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+
       appBar: AppBar(
         backgroundColor: Colors.black,
         elevation: 0,
         automaticallyImplyLeading: false,
+
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -43,44 +42,40 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               onTap: () => Navigator.pop(context),
               child: const Text(
                 'Cancel',
-                style: TextStyle(color: Colors.white, fontSize: 16),
+                style: TextStyle(color: Colors.white),
               ),
             ),
+
             const Text(
               'Create New Post',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(color: Colors.white),
             ),
+
             GestureDetector(
               onTap: isLoading ? null : _savePost,
               child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.green,
-                  borderRadius: BorderRadius.circular(8),
-                ),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 8,
                 ),
+                decoration: BoxDecoration(
+                  color: Colors.green,
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 child: isLoading
                     ? const SizedBox(
-                        width: 20,
-                        height: 20,
+                        width: 18,
+                        height: 18,
                         child: CircularProgressIndicator(
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.black),
                           strokeWidth: 2,
+                          color: Colors.black,
                         ),
                       )
                     : const Text(
-                        'Share',
+                        "Share",
                         style: TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
                         ),
                       ),
               ),
@@ -88,14 +83,29 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           ],
         ),
       ),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            const RunRouteCard(),
+            /// ❌ ห้าม const เพราะต้องส่ง data
+            RunRouteCard(
+              post: Post(
+                id: '',
+                userId: '',
+                userName: 'Preview',
+                description: description,
+                tags: tags,
+                privacy: selectedPrivacy,
+                imageUrl: selectedImageUrl ?? '',
+                createdAt: DateTime.now(),
+              ),
+              onLike: () {},
+              onTap: () {},
+            ),
+
             const SizedBox(height: 20),
 
-            // ✅ MediaSection จะ upload เสร็จก่อน แล้วส่ง URL จริงมาให้
             MediaSection(
               onImageChanged: (url) {
                 setState(() => selectedImageUrl = url);
@@ -122,13 +132,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   Future<void> _savePost() async {
     if (description.trim().isEmpty) {
-      _showSnack('❌ Please add a description', Colors.red);
+      _showSnack('❌ Please add description', Colors.red);
       return;
     }
 
-    // ✅ บังคับให้เลือกรูปก่อน Share (ถ้าต้องการ optional ให้ลบ block นี้ออก)
     if (selectedImageUrl == null) {
-      _showSnack('❌ Please add a photo', Colors.red);
+      _showSnack('❌ Please add photo', Colors.red);
       return;
     }
 
@@ -146,41 +155,46 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           .doc(user.uid)
           .get();
 
-      if (!userDoc.exists) throw Exception('User data not found');
-
       final userData = userDoc.data()!;
-      final postId =
-          FirebaseFirestore.instance.collection('posts').doc().id;
+
+      final postId = FirebaseFirestore.instance.collection('posts').doc().id;
 
       final post = Post(
         id: postId,
         userId: user.uid,
         userName: userData['nickName'] ?? 'Unknown',
+        userAvatar: userData['avatar'] ?? '',
         description: description.trim(),
         tags: tags,
         privacy: selectedPrivacy,
-        // ✅ ใช้ URL จริงที่อัปโหลดแล้ว — ไม่มี hardcode fallback อีกต่อไป
         imageUrl: selectedImageUrl!,
+        location: tags.isNotEmpty ? tags.first : '',
+        distance: '5.32 กม.',
+        duration: '1 ชม.',
+        pace: '12:00 นาที/กม.',
         createdAt: DateTime.now(),
+
+        // 🔥 สำคัญ
+        likes: 0,
+        comments: [],
       );
 
       await _postService.createPost(post);
 
       if (!mounted) return;
+
       Navigator.pop(context);
-      _showSnack('✨ Post created successfully!', Colors.green);
+      _showSnack('✅ Post created!', Colors.green);
     } catch (e) {
-      debugPrint('[CreatePost] Error: $e');
-      if (!mounted) return;
       _showSnack('❌ $e', Colors.red);
     } finally {
-      if (mounted) setState(() => isLoading = false);
+      setState(() => isLoading = false);
     }
   }
 
   void _showSnack(String text, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(text), backgroundColor: color),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(text), backgroundColor: color));
   }
 }

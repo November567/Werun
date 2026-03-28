@@ -1,156 +1,166 @@
 import 'package:flutter/material.dart';
-import '../components/run_history_card.dart';
-import '../components/suggested_places_card.dart';
-import '../components/friend_activity_card.dart';
-import 'create_post_screen.dart';
-import 'view_detail_screen.dart';
-import '../../models/post.dart';
-import '../../services/post_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+import '../components/createPost/run_route_card.dart';
+import '../../models/post.dart';
+import 'view_detail_screen.dart';
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final Map<String, TextEditingController> _controllers = {};
+
+  /// 👍 LIKE
+  Future<void> _likePost(Post post) async {
+    await FirebaseFirestore.instance.collection('posts').doc(post.id).update({
+      'likes': FieldValue.increment(1),
+    });
+  }
+
+  /// 💬 ADD COMMENT
+  Future<void> _addComment(Post post) async {
+    final controller = _controllers[post.id];
+    if (controller == null || controller.text.trim().isEmpty) return;
+
+    final text = controller.text.trim();
+    final newComment = "You: $text";
+
+    await FirebaseFirestore.instance.collection('posts').doc(post.id).update({
+      'comments': FieldValue.arrayUnion([newComment]),
+    });
+
+    controller.clear();
+  }
+
+  TextEditingController _getController(String postId) {
+    if (!_controllers.containsKey(postId)) {
+      _controllers[postId] = TextEditingController();
+    }
+    return _controllers[postId]!;
+  }
+
+  @override
+  void dispose() {
+    for (var c in _controllers.values) {
+      c.dispose();
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final postService = PostService();
-
     return Scaffold(
       backgroundColor: Colors.black,
 
-      // ✅ ปุ่ม +
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const CreatePostScreen()),
-          );
-        },
-        backgroundColor: Colors.green,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('posts')
+            .orderBy('createdAt', descending: true)
+            .snapshots(),
 
-      // ✅ เปลี่ยนจาก endFloat → startFloat (ย้ายไปซ้ายล่าง)
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(height: 24),
-
-            // Run History & Suggested Places
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: const Row(
-                  children: [
-                    RunHistoryCard(),
-                    SizedBox(width: 12),
-                    SuggestedPlacesCard(),
-                  ],
-                ),
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(
+              child: Text(
+                "No posts yet",
+                style: TextStyle(color: Colors.white54),
               ),
-            ),
+            );
+          }
 
-            const SizedBox(height: 24),
+          final posts = snapshot.data!.docs.map((doc) {
+            return Post.fromFirestore(doc);
+          }).toList();
 
-            // Friend Activities
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: StreamBuilder<List<Post>>(
-                stream: postService.getPostsStream(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
-                      ),
-                    );
-                  }
+          return ListView.builder(
+            padding: const EdgeInsets.all(12),
+            itemCount: posts.length,
+            itemBuilder: (context, index) {
+              final post = posts[index];
+              final controller = _getController(post.id);
 
-                  if (snapshot.hasError) {
-                    return Center(
-                      child: Text(
-                        'Error loading posts: ${snapshot.error}',
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                    );
-                  }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// 🔥 CARD
+                  RunRouteCard(
+                    post: post,
+                    onLike: () => _likePost(post),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ViewDetailScreen(post: post),
+                        ),
+                      );
+                    },
+                  ),
 
-                  final posts = snapshot.data ?? [];
-
-                  if (posts.isEmpty) {
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 32),
-                        child: Text(
-                          'No posts yet. Create your first post!',
-                          style: TextStyle(color: Colors.grey[400]),
+                  /// 💬 COMMENT LIST (แสดง 2 อันล่าสุด)
+                  ...post.comments
+                      .take(2)
+                      .map(
+                        (c) => Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 4,
+                          ),
+                          child: Text(
+                            c,
+                            style: const TextStyle(color: Colors.white70),
+                          ),
                         ),
                       ),
-                    );
-                  }
 
-                  return Column(
-                    children: posts.map((post) {
-                      return Column(
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => ViewDetailScreen(post: post),
-                                ),
-                              );
-                            },
-                            child: FriendActivityCard(
-                              name: post.userName,
-                              location: post.tags.isNotEmpty
-                                  ? post.tags.first
-                                  : 'Unknown Location',
-                              distance: post.tags.length > 1
-                                  ? post.tags[1]
-                                  : '0 km',
-                              duration: '1 hr',
-                              pace: '12:00/min/km',
-                              likes: post.likes,
-                              saves: post.saves,
-                              imageUrl: post.imageUrl,
-                              onLike: () async {
-                                try {
-                                  await postService.likePost(post.id);
-                                } catch (_) {}
-                              },
-                              onUnlike: () async {
-                                try {
-                                  await postService.unlikePost(post.id);
-                                } catch (_) {}
-                              },
-                              onSave: () async {
-                                try {
-                                  await postService.savePost(post.id);
-                                } catch (_) {}
-                              },
-                              onUnsave: () async {
-                                try {
-                                  await postService.unsavePost(post.id);
-                                } catch (_) {}
-                              },
+                  /// ✍️ COMMENT INPUT
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[800],
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: TextField(
+                              controller: controller,
+                              style: const TextStyle(color: Colors.white),
+                              decoration: const InputDecoration(
+                                hintText: "Add a comment...",
+                                hintStyle: TextStyle(color: Colors.white54),
+                                border: InputBorder.none,
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 20),
-                        ],
-                      );
-                    }).toList(),
-                  );
-                },
-              ),
-            ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.send, color: Colors.green),
+                          onPressed: () => _addComment(post),
+                        ),
+                      ],
+                    ),
+                  ),
 
-            const SizedBox(height: 100),
-          ],
-        ),
+                  const SizedBox(height: 10),
+                ],
+              );
+            },
+          );
+        },
       ),
     );
   }
