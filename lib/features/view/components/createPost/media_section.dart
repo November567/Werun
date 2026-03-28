@@ -201,7 +201,7 @@ class _MediaSectionState extends State<MediaSection> {
                           border: Border.all(color: Colors.white, width: 2),
                           boxShadow: [
                             BoxShadow(
-                                color: Colors.black.withOpacity(0.3),
+                                color: Colors.black.withValues(alpha: 0.3),
                                 blurRadius: 4)
                           ],
                         ),

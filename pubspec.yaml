@@ -30,14 +30,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  google_maps_flutter: ^2.16.0
+  google_maps_flutter_web: ^0.6.2
   firebase_core: ^4.4.0
   firebase_auth: ^6.1.4
   cloud_firestore: ^6.1.2
   firebase_database: ^12.0.0
   firebase_messaging: ^16.0.0
-  flutter_map: ^7.0.2
-  latlong2: ^0.9.1
   http: ^1.6.0
   flutter_dotenv: ^6.0.0
   shared_preferences: ^2.5.4

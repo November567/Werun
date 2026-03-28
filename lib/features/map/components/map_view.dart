@@ -1,50 +1,91 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-class MapView extends StatelessWidget {
+class MapView extends StatefulWidget {
   const MapView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return FlutterMap(
-      options: const MapOptions(
-        initialCenter: LatLng(13.7563, 100.5018),
-        initialZoom: 16,
-      ),
-      children: [
-        TileLayer(
-          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-          userAgentPackageName: 'com.example.werun',
-        ),
+  State<MapView> createState() => _MapViewState();
+}
 
-        /// Runner markers
-        MarkerLayer(
-          markers: [
-            _runnerMarker(13.7566, 100.5010),
-            _runnerMarker(13.7558, 100.5020),
-            _runnerMarker(13.7562, 100.5030),
-          ],
-        ),
-      ],
+class _MapViewState extends State<MapView> {
+  late GoogleMapController mapController;
+
+  final LatLng _initialPosition = const LatLng(13.7563, 100.5018);
+
+  final Set<Marker> _markers = {};
+  final Set<Polyline> _polylines = {};
+
+  @override
+  void initState() {
+    super.initState();
+
+    // เพิ่ม marker เริ่มต้น
+    _markers.addAll([
+      _runnerMarker(13.7566, 100.5010),
+      _runnerMarker(13.7558, 100.5020),
+      _runnerMarker(13.7562, 100.5030),
+    ]);
+
+    // ตัวอย่างวาดเส้นวิ่ง
+    _polylines.add(
+      Polyline(
+        polylineId: const PolylineId('route1'),
+        points: [
+          const LatLng(13.7566, 100.5010),
+          const LatLng(13.7558, 100.5020),
+          const LatLng(13.7562, 100.5030),
+        ],
+        color: Colors.blue,
+        width: 4,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GoogleMap(
+      initialCameraPosition: CameraPosition(target: _initialPosition, zoom: 16),
+      markers: _markers,
+      polylines: _polylines,
+      myLocationEnabled: true,
+      myLocationButtonEnabled: true,
+      onMapCreated: (controller) => mapController = controller,
     );
   }
 
   Marker _runnerMarker(double lat, double lng) {
     return Marker(
-      point: LatLng(lat, lng),
-      width: 48,
-      height: 48,
-      child: CircleAvatar(
-        backgroundColor: Colors.white,
-        radius: 24,
-        child: CircleAvatar(
-          radius: 21,
-          backgroundImage: NetworkImage(
-            'https://i.pravatar.cc/150?img=${lat.hashCode % 70}',
-          ),
-        ),
-      ),
+      markerId: MarkerId('$lat$lng'),
+      position: LatLng(lat, lng),
+      infoWindow: const InfoWindow(title: 'Runner', snippet: 'Running here'),
     );
+  }
+
+  // ฟังก์ชันเพิ่ม marker ใหม่ (เช่น หลัง search)
+  void addMarker(LatLng position, String title) {
+    setState(() {
+      _markers.add(
+        Marker(
+          markerId: MarkerId(title),
+          position: position,
+          infoWindow: InfoWindow(title: title),
+        ),
+      );
+    });
+  }
+
+  // ฟังก์ชันวาดเส้นวิ่งใหม่
+  void addPolyline(List<LatLng> points, String id) {
+    setState(() {
+      _polylines.add(
+        Polyline(
+          polylineId: PolylineId(id),
+          points: points,
+          color: Colors.red,
+          width: 4,
+        ),
+      );
+    });
   }
 }
