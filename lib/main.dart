@@ -12,12 +12,15 @@ import 'features/view/screens/home_screen.dart';
 import 'features/map/screens/map_screen.dart';
 import 'features/view/screens/view_screen.dart';
 import 'features/profile/screens/profile_screen.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await dotenv.load(fileName: ".env");
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform, 
+  );
 
   final SharedPreferencesWithCache prefs =
       await SharedPreferencesWithCache.create(
