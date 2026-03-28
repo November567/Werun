@@ -1,117 +1,123 @@
 import 'package:flutter/material.dart';
-
 import '../components/profile_header_card.dart';
-import '../components/profile_menu_item.dart';
 import '../components/weekly_chart.dart';
-import '../../auth/services/auth_service.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            SizedBox(height: 10),
+    return Scaffold(
+      backgroundColor: const Color(0xFF0E0E0E),
 
-            /// Top Bar
-            _TopBar(),
-
-            SizedBox(height: 20),
-
-            /// Profile Header Card
-            ProfileHeaderCard(),
-
-            SizedBox(height: 25),
-
-            /// Menu + Chart Card
-            _MenuSection(),
-
-            SizedBox(height: 20),
-          ],
+      appBar: AppBar(
+        backgroundColor: Colors.black.withValues(alpha: 0.6),
+        elevation: 0,
+        title: const Text(
+          "WeRun",
+          style: TextStyle(color: Colors.lime, fontWeight: FontWeight.bold),
         ),
+        leading: const Icon(Icons.arrow_back, color: Colors.lime),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 12),
+            child: Icon(Icons.settings, color: Colors.grey),
+          ),
+        ],
+      ),
+
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              const ProfileHeader(),
+              const SizedBox(height: 20),
+              const StatsSection(),
+              const SizedBox(height: 20),
+              const WeeklyChart(),
+              const SizedBox(height: 20),
+              const RecentRuns(),
+            ],
+          ),
+        ),
+      ),
+
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.black,
+        selectedItemColor: Colors.lime,
+        unselectedItemColor: Colors.grey,
+        currentIndex: 3,
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.explore), label: "Explore"),
+          BottomNavigationBarItem(icon: Icon(Icons.speed), label: "Activity"),
+          BottomNavigationBarItem(icon: Icon(Icons.chat), label: "Social"),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
+        ],
       ),
     );
   }
 }
 
-////////////////////////////////////////////////////////////
-/// TOP BAR
-////////////////////////////////////////////////////////////
-
-class _TopBar extends StatelessWidget {
-  const _TopBar();
+class StatsSection extends StatelessWidget {
+  const StatsSection({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: const [
-        Icon(Icons.menu, color: Colors.white, size: 28),
-        SizedBox(width: 15),
-        Expanded(
-          child: Text(
-            "Search Locations",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          color: const Color(0xFF1A1A1A),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              Text("Total Distance", style: TextStyle(color: Colors.grey)),
+              Row(
+                children: [
+                  Text(
+                    "1,284",
+                    style: TextStyle(
+                      fontSize: 32,
+                      color: Colors.lime,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Text("KM", style: TextStyle(color: Colors.grey)),
+                ],
+              ),
+            ],
           ),
         ),
-        Icon(Icons.search, color: Colors.white, size: 28),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(child: statBox("Avg Pace", "4'12\" /km")),
+            const SizedBox(width: 10),
+            Expanded(child: statBox("Runs", "156")),
+          ],
+        ),
       ],
     );
   }
-}
 
-////////////////////////////////////////////////////////////
-/// MENU SECTION
-////////////////////////////////////////////////////////////
-
-class _MenuSection extends StatelessWidget {
-  const _MenuSection();
-
-  Future<void> _logout() async {
-    await AuthService().signOut();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget statBox(String title, String value) {
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFF2B2B2B),
-        borderRadius: BorderRadius.circular(25),
-      ),
+      padding: const EdgeInsets.all(12),
+      color: const Color(0xFF1A1A1A),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const ProfileMenuItem(title: "Activity"),
-          const Divider(color: Colors.white10, height: 1),
-          const ProfileMenuItem(title: "Statistics"),
-          const Divider(color: Colors.white10, height: 1),
-          const ProfileMenuItem(title: "Routes"),
-          const SizedBox(height: 10),
-          const Divider(color: Colors.white10, height: 1),
-          const SizedBox(height: 10),
-
-          /// 🔴 LOGOUT
-          ProfileMenuItem(
-            title: "Logout",
-            color: Colors.redAccent,
-            onTap: _logout,
+          Text(title, style: const TextStyle(color: Colors.grey)),
+          const SizedBox(height: 5),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-
-          const SizedBox(height: 25),
-
-          /// Weekly Chart
-          const WeeklyChart(),
-
-          const SizedBox(height: 15),
         ],
       ),
     );

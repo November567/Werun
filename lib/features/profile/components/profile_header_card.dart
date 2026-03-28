@@ -1,118 +1,75 @@
 import 'package:flutter/material.dart';
 
-class ProfileHeaderCard extends StatelessWidget {
-  const ProfileHeaderCard({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFF2B2B2B),
-        borderRadius: BorderRadius.circular(25),
-      ),
-      child: Column(
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CircleAvatar(
-                radius: 45,
-                backgroundImage: NetworkImage(
-                  "https://i.pravatar.cc/150?img=3",
-                ),
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Carly Mensch",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "Khonkaen Thailand",
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      "carly2544@hotmail.com",
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Text(
-                "Friend 300",
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 13,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 25),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _StatItem(
-                title: "Total distance",
-                value: "100 KM",
-                isHighlight: true,
-              ),
-              _StatItem(title: "Total runs", value: "50"),
-              _StatItem(title: "Average pace", value: "2 Km/hr"),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatItem extends StatelessWidget {
-  final String title;
-  final String value;
-  final bool isHighlight;
-
-  const _StatItem({
-    required this.title,
-    required this.value,
-    this.isHighlight = false,
-  });
+class ProfileHeader extends StatelessWidget {
+  const ProfileHeader({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text(
-          value,
+        Stack(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.lime.withOpacity(0.3),
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.lime.withOpacity(0.2),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: const CircleAvatar(
+                radius: 60,
+                backgroundImage: NetworkImage(
+                  "https://lh3.googleusercontent.com/aida-public/AB6AXuDgbt1XVTVBDp2Ibn_IvE593O--NTijzDOclOSBw7-VR433ZdIUwh1AoiEDgp_LYkbnoCezi8reF9ROckH-gHwUHOOeY8HnQ7pk-2jBU0CsoZhyIkKD0Z6oBX_vi0qBSraux_8_Oa8nYRKvYPod3zXhx-XODMTOBcGruzb5fyHLO69ZHgQo-4w5IO6s1xomqhWpPh4rSA_yLsh5ADoahqMpgvVtArSmPjU-frK1Z6uOVbhRCS4CGJHtWkDeFi9N_4A-hJSm_Es-Q6d8",
+                ),
+              ),
+            ),
+
+            Positioned(
+              bottom: 4,
+              right: 4,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.lime,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  "PRO",
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        const Text(
+          "Marcus Chen",
           style: TextStyle(
-            color: isHighlight ? const Color(0xFF00FF5F) : Colors.white,
+            fontSize: 28,
             fontWeight: FontWeight.bold,
-            fontSize: isHighlight ? 22 : 16,
+            color: Colors.white,
           ),
         ),
-        const SizedBox(height: 6),
-        Text(
-          title,
-          style: const TextStyle(
-            color: Colors.grey,
-            fontSize: 12,
-          ),
+
+        const SizedBox(height: 4),
+
+        const Text(
+          "RUNNER",
+          style: TextStyle(color: Colors.lime, letterSpacing: 2),
         ),
       ],
     );
