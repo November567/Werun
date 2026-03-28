@@ -62,7 +62,7 @@ class WeeklyChart extends StatelessWidget {
                       boxShadow: index == 2
                           ? [
                               BoxShadow(
-                                color: Colors.lime.withValues(alpha: 0.4),
+                                color: Colors.lime.withOpacity(0.4),
                                 blurRadius: 10,
                               ),
                             ]

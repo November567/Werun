@@ -18,6 +18,12 @@ class ProfileScreen extends StatelessWidget {
           style: TextStyle(color: Colors.lime, fontWeight: FontWeight.bold),
         ),
         leading: const Icon(Icons.arrow_back, color: Colors.lime),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 12),
+            child: Icon(Icons.settings, color: Colors.grey),
+          ),
+        ],
       ),
 
       body: SafeArea(
