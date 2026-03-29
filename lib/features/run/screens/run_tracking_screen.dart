@@ -139,9 +139,7 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
     return {
       Polyline(
         polylineId: const PolylineId('route'),
-        points: _service.routePoints
-            .map((p) => LatLng(p.latitude, p.longitude))
-            .toList(),
+        points: _service.routePoints.toList(),
         color: Colors.lime,
         width: 5,
       ),
@@ -153,18 +151,12 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
     return {
       Marker(
         markerId: const MarkerId('start'),
-        position: LatLng(
-          _service.routePoints.first.latitude,
-          _service.routePoints.first.longitude,
-        ),
+        position: _service.routePoints.first,
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
       ),
       Marker(
         markerId: const MarkerId('current'),
-        position: LatLng(
-          _service.routePoints.last.latitude,
-          _service.routePoints.last.longitude,
-        ),
+        position: _service.routePoints.last,
         icon:
             BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
       ),
