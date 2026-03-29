@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../components/profile_header_card.dart';
 import '../components/weekly_chart.dart';
+import '../../auth/services/auth_service.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -18,10 +19,10 @@ class ProfileScreen extends StatelessWidget {
           style: TextStyle(color: Colors.lime, fontWeight: FontWeight.bold),
         ),
         leading: const Icon(Icons.arrow_back, color: Colors.lime),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 12),
-            child: Icon(Icons.settings, color: Colors.grey),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.redAccent),
+            onPressed: () => AuthService().signOut(),
           ),
         ],
       ),
@@ -41,20 +42,6 @@ class ProfileScreen extends StatelessWidget {
             ],
           ),
         ),
-      ),
-
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.black,
-        selectedItemColor: Colors.lime,
-        unselectedItemColor: Colors.grey,
-        currentIndex: 3,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.explore), label: "Explore"),
-          BottomNavigationBarItem(icon: Icon(Icons.speed), label: "Activity"),
-          BottomNavigationBarItem(icon: Icon(Icons.chat), label: "Social"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
-        ],
       ),
     );
   }
@@ -94,16 +81,16 @@ class StatsSection extends StatelessWidget {
         const SizedBox(height: 10),
         Row(
           children: [
-            Expanded(child: statBox("Avg Pace", "4'12\" /km")),
+            Expanded(child: _statBox("Avg Pace", "4'12\" /km")),
             const SizedBox(width: 10),
-            Expanded(child: statBox("Runs", "156")),
+            Expanded(child: _statBox("Runs", "156")),
           ],
         ),
       ],
     );
   }
 
-  Widget statBox(String title, String value) {
+  Widget _statBox(String title, String value) {
     return Container(
       padding: const EdgeInsets.all(12),
       color: const Color(0xFF1A1A1A),

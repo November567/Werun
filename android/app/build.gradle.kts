@@ -5,11 +5,6 @@ plugins {
     id("com.google.gms.google-services")
 }
 
-val localProperties = java.util.Properties().apply {
-    val file = rootProject.file("local.properties")
-    if (file.exists()) load(file.inputStream())
-}
-
 android {
     namespace = "com.mapp05.werun"
     compileSdk = flutter.compileSdkVersion
@@ -32,7 +27,7 @@ android {
         versionName = flutter.versionName
         multiDexEnabled = true
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] =
-            localProperties.getProperty("GOOGLE_MAPS_API_KEY") ?: ""
+            project.findProperty("GOOGLE_MAPS_API_KEY") ?: "YOUR_API_KEY_HERE"
     }
 
     buildTypes {
