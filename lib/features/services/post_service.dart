@@ -98,4 +98,31 @@ class PostService {
       rethrow;
     }
   }
+
+  Future<void> toggleLike(String postId, {required bool isLiked}) async {
+    try {
+      await _firestore.collection(_collection).doc(postId).update({
+        'likes': FieldValue.increment(isLiked ? 1 : -1),
+      });
+    } catch (e) {
+      debugPrint('[PostService] Error toggling like: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> addComment(String postId, String comment) async {
+    try {
+      await _firestore.collection(_collection).doc(postId).update({
+        'comments': FieldValue.arrayUnion([comment]),
+      });
+    } catch (e) {
+      debugPrint('[PostService] Error adding comment: $e');
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> getUserData(String uid) async {
+    final doc = await _firestore.collection('users').doc(uid).get();
+    return doc.data() ?? {};
+  }
 }

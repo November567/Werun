@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../components/createPost/run_route_card.dart';
 import '../../models/post.dart';
+import '../../services/post_service.dart';
 import 'view_detail_screen.dart';
 import 'create_post_screen.dart';
 
@@ -14,34 +15,24 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final _postService = PostService();
   final Map<String, TextEditingController> _controllers = {};
   final Set<String> likedPosts = {};
 
-  /// 👍 LIKE toggle
   Future<void> _likePost(Post post) async {
-    final isLiked = likedPosts.contains(post.id);
-
-    await FirebaseFirestore.instance.collection('posts').doc(post.id).update({
-      'likes': FieldValue.increment(isLiked ? -1 : 1),
-    });
-
+    final isNowLiked = !likedPosts.contains(post.id);
     setState(() {
-      isLiked ? likedPosts.remove(post.id) : likedPosts.add(post.id);
+      isNowLiked ? likedPosts.add(post.id) : likedPosts.remove(post.id);
     });
+    await _postService.toggleLike(post.id, isLiked: isNowLiked);
   }
 
-  /// 💬 COMMENT
   Future<void> _addComment(Post post) async {
     final controller = _controllers[post.id];
     if (controller == null || controller.text.isEmpty) return;
-
-    final newComment = "You: ${controller.text}";
-
-    await FirebaseFirestore.instance.collection('posts').doc(post.id).update({
-      'comments': FieldValue.arrayUnion([newComment]),
-    });
-
+    final text = controller.text.trim();
     controller.clear();
+    await _postService.addComment(post.id, 'You: $text');
   }
 
   TextEditingController _getController(String id) {
@@ -106,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                   ),
 
-                  /// 💬 COMMENT ล่าสุด
+                  // Last 2 comments preview
                   ...post.comments
                       .take(2)
                       .map(
@@ -117,12 +108,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           child: Text(
                             c,
-                            style: const TextStyle(color: Colors.white70),
+                            style:
+                                const TextStyle(color: Colors.white70),
                           ),
                         ),
                       ),
 
-                  /// ✍️ INPUT
+                  // Comment input
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
@@ -135,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             controller: _getController(post.id),
                             style: const TextStyle(color: Colors.white),
                             decoration: const InputDecoration(
-                              hintText: "Add comment...",
+                              hintText: 'Add comment...',
                               hintStyle: TextStyle(color: Colors.white54),
                               border: InputBorder.none,
                             ),
