@@ -6,6 +6,7 @@ class RunRouteCard extends StatelessWidget {
   final Post post;
   final VoidCallback onLike;
   final VoidCallback onTap;
+  final VoidCallback? onComment;
   final bool isLiked;
   final bool isOwnPost;
 
@@ -14,6 +15,7 @@ class RunRouteCard extends StatelessWidget {
     required this.post,
     required this.onLike,
     required this.onTap,
+    this.onComment,
     required this.isLiked,
     this.isOwnPost = false,
   });
@@ -155,17 +157,20 @@ class RunRouteCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                // Comment count — padded for 44dp touch target
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.chat_bubble_outline,
-                          color: Colors.white54, size: 20),
-                      const SizedBox(width: 4),
-                      Text('${post.comments.length}',
-                          style: Theme.of(context).textTheme.bodySmall),
-                    ],
+                // Comment count — tappable, padded for 44dp touch target
+                GestureDetector(
+                  onTap: onComment,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.chat_bubble_outline,
+                            color: Colors.white54, size: 20),
+                        const SizedBox(width: 4),
+                        Text('${post.comments.length}',
+                            style: Theme.of(context).textTheme.bodySmall),
+                      ],
+                    ),
                   ),
                 ),
                 const Spacer(),
@@ -221,6 +226,14 @@ class _UserAvatar extends StatelessWidget {
         radius: 20,
         backgroundColor: Colors.grey[700],
         backgroundImage: NetworkImage(avatarUrl),
+      );
+    }
+
+    if (userId.isEmpty) {
+      return CircleAvatar(
+        radius: 20,
+        backgroundColor: Colors.grey[700],
+        backgroundImage: const NetworkImage(_kAnonymousAvatar),
       );
     }
 

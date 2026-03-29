@@ -135,7 +135,7 @@ class _PostRunSheetState extends State<PostRunSheet> {
               if (snap.connectionState != ConnectionState.done ||
                   snap.data == null) {
                 return Container(
-                  height: 160,
+                  height: 240,
                   decoration: BoxDecoration(
                     color: AppTheme.cardBg,
                     borderRadius: BorderRadius.circular(12),
@@ -152,7 +152,7 @@ class _PostRunSheetState extends State<PostRunSheet> {
                 child: Image.memory(
                   snap.data!,
                   width: double.infinity,
-                  height: 160,
+                  height: 240,
                   fit: BoxFit.cover,
                 ),
               );

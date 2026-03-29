@@ -14,6 +14,7 @@ import 'features/map/screens/map_screen.dart';
 import 'features/view/screens/view_screen.dart';
 import 'features/profile/screens/profile_screen.dart';
 import 'features/run/screens/run_tracking_screen.dart';
+import 'features/view/screens/create_post_screen.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -96,6 +97,17 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       body: IndexedStack(index: _currentIndex, children: _screens),
+      floatingActionButton: _currentIndex == 0
+          ? FloatingActionButton(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => const CreatePostScreen()),
+              ),
+              child: const Icon(Icons.add, color: Colors.black),
+            )
+          : null,
       bottomNavigationBar: WeRunBottomNavbar(
         currentIndex: _currentIndex,
         onTap: (index) {
