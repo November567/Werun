@@ -72,12 +72,15 @@ class SuggestedPlacesSection extends StatelessWidget {
               ),
               GestureDetector(
                 onTap: () {},
-                child: Text(
-                  'SEE MORE →',
-                  style: TextStyle(
-                    color: primary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                  child: Text(
+                    'SEE MORE →',
+                    style: TextStyle(
+                      color: primary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),

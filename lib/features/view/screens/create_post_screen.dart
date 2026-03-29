@@ -168,7 +168,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         id: postId,
         userId: user.uid,
         userName: userData['nickName'] ?? 'Unknown',
-        userAvatar: userData['avatar'] ?? '',
+        userAvatar: userData['avatarUrl'] ?? '',
         description: description.trim(),
         tags: tags,
         privacy: selectedPrivacy,

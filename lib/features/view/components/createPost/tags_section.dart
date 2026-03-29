@@ -108,7 +108,10 @@ class _TagsSectionState extends State<TagsSection> {
                                 const SizedBox(width: 6),
                                 GestureDetector(
                                   onTap: () => _removeTag(tag),
-                                  child: const Icon(Icons.close, size: 14, color: Colors.white),
+                                  child: const Padding(
+                                    padding: EdgeInsets.all(6),
+                                    child: Icon(Icons.close, size: 14, color: Colors.white),
+                                  ),
                                 ),
                               ],
                             ),

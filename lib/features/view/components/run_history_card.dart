@@ -46,19 +46,19 @@ class RunHistoryCard extends StatelessWidget {
           const SizedBox(height: 6),
           Row(
             children: [
-              Icon(Icons.location_on, color: Theme.of(context).colorScheme.primary, size: 11),
+              Icon(Icons.location_on, color: Theme.of(context).colorScheme.primary, size: 12),
               const SizedBox(width: 2),
-              const Text('5.32 km', style: TextStyle(color: Colors.white70, fontSize: 10)),
+              const Text('5.32 km', style: TextStyle(color: Colors.white70, fontSize: 12)),
             ],
           ),
           Row(
             children: [
               Icon(Icons.schedule, color: Theme.of(context).colorScheme.primary, size: 11),
               const SizedBox(width: 2),
-              const Text('1 hr. ', style: TextStyle(color: Colors.white70, fontSize: 10)),
-              Icon(Icons.directions_run, color: Theme.of(context).colorScheme.primary, size: 11),
+              const Text('1 hr. ', style: TextStyle(color: Colors.white70, fontSize: 12)),
+              Icon(Icons.directions_run, color: Theme.of(context).colorScheme.primary, size: 12),
               const SizedBox(width: 2),
-              const Text('2 hr./Pace', style: TextStyle(color: Colors.white70, fontSize: 10)),
+              const Text('2 hr./Pace', style: TextStyle(color: Colors.white70, fontSize: 12)),
             ],
           ),
           const SizedBox(height: 6),

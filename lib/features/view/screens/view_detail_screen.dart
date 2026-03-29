@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/post.dart';
 import '../../services/post_service.dart';
 
@@ -23,7 +24,6 @@ class _ViewDetailScreenState extends State<ViewDetailScreen>
   late AnimationController _likeController;
   late Animation<double> _likeAnimation;
 
-  String currentUser = "Carly Mensch";
 
   @override
   void initState() {
@@ -48,7 +48,19 @@ class _ViewDetailScreenState extends State<ViewDetailScreen>
 
   /// 💬 COMMENT
   Future<void> _addComment(String text) async {
-    await _postService.addComment(widget.post.id, '$currentUser: $text');
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    String userName = 'Me';
+    String userAvatar = '';
+    if (uid != null) {
+      final userData = await _postService.getUserData(uid);
+      userName = userData['nickName'] ?? userData['fullName'] ?? 'Me';
+      userAvatar = userData['avatarUrl'] ?? '';
+    }
+    await _postService.addComment(widget.post.id, {
+      'userName': userName,
+      'userAvatar': userAvatar,
+      'text': text,
+    });
   }
 
   /// 🔗 SHARE (สวย + มีข้อมูลครบ)
@@ -96,7 +108,7 @@ class _ViewDetailScreenState extends State<ViewDetailScreen>
           final data = snapshot.data!.data() as Map<String, dynamic>;
           final post = Post.fromMap(data);
 
-          final comments = List<String>.from(data['comments'] ?? []);
+          final comments = Post.parseComments(data['comments']);
           final likes = data['likes'] ?? 0;
 
           return SafeArea(
@@ -262,12 +274,40 @@ class _ViewDetailScreenState extends State<ViewDetailScreen>
                   ...comments.map(
                     (c) => Padding(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      child: Text(
-                        c,
-                        style: const TextStyle(color: Colors.white),
+                          horizontal: 12, vertical: 6),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CircleAvatar(
+                            radius: 16,
+                            backgroundImage: NetworkImage(
+                              (c['userAvatar'] as String?)?.isNotEmpty == true
+                                  ? c['userAvatar'] as String
+                                  : 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y',
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: RichText(
+                              text: TextSpan(
+                                style: const TextStyle(fontSize: 14),
+                                children: [
+                                  TextSpan(
+                                    text: '${c['userName'] ?? ''} ',
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600),
+                                  ),
+                                  TextSpan(
+                                    text: c['text'] ?? '',
+                                    style: const TextStyle(
+                                        color: Colors.white70),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),

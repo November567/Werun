@@ -20,7 +20,7 @@ class RunPlaceCard extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Image.network(
-                'https://images.unsplash.com/photo-1508609349937-5ec4ae374ebf',
+                'https://i.ytimg.com/vi/wTZuouZAoP0/maxresdefault.jpg',
                 width: 80,
                 height: 80,
                 fit: BoxFit.cover,
@@ -32,7 +32,7 @@ class RunPlaceCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
                   Text(
-                    'สวนเบญจกิติ',
+                    'สระพลาสติก มข.',
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,

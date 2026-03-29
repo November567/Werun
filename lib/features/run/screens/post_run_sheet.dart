@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../shared/widgets/run_stat_chip.dart';
 import '../../../shared/widgets/bottom_sheet_container.dart';
+import '../../../core/theme/app_theme.dart';
 
 class PostRunSheet extends StatefulWidget {
   final String distance;
@@ -64,7 +65,7 @@ class _PostRunSheetState extends State<PostRunSheet> {
       await FirebaseFirestore.instance.collection('posts').add({
         'userId': user.uid,
         'userName': userData['fullName'] ?? user.displayName ?? 'Runner',
-        'userAvatar': userData['photoUrl'] ?? '',
+        'userAvatar': userData['avatarUrl'] ?? '',
         'title': title,
         'description': _descController.text.trim(),
         'tags': ['run'],
@@ -112,8 +113,9 @@ class _PostRunSheetState extends State<PostRunSheet> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
+              color: AppTheme.cardBg,
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white12),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -135,8 +137,9 @@ class _PostRunSheetState extends State<PostRunSheet> {
                 return Container(
                   height: 160,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
+                    color: AppTheme.cardBg,
                     borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white12),
                   ),
                   child: Center(
                     child: CircularProgressIndicator(
@@ -165,10 +168,14 @@ class _PostRunSheetState extends State<PostRunSheet> {
               hintText: 'Run title (e.g. Morning Sprint)',
               hintStyle: const TextStyle(color: Colors.grey),
               filled: true,
-              fillColor: Theme.of(context).colorScheme.surface,
+              fillColor: AppTheme.cardBg,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
+                borderSide: const BorderSide(color: Colors.white24),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.white24),
               ),
             ),
           ),
@@ -183,10 +190,14 @@ class _PostRunSheetState extends State<PostRunSheet> {
               hintText: 'How did it go? (optional)',
               hintStyle: const TextStyle(color: Colors.grey),
               filled: true,
-              fillColor: Theme.of(context).colorScheme.surface,
+              fillColor: AppTheme.cardBg,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
+                borderSide: const BorderSide(color: Colors.white24),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.white24),
               ),
             ),
           ),

@@ -110,7 +110,7 @@ class PostService {
     }
   }
 
-  Future<void> addComment(String postId, String comment) async {
+  Future<void> addComment(String postId, Map<String, dynamic> comment) async {
     try {
       await _firestore.collection(_collection).doc(postId).update({
         'comments': FieldValue.arrayUnion([comment]),

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'runner_profile_sheet.dart';
 import 'map_marker_helper.dart';
@@ -24,7 +25,8 @@ class MapView extends StatefulWidget {
 class _MapViewState extends State<MapView> {
   late GoogleMapController mapController;
 
-  final LatLng _initialPosition = const LatLng(13.7563, 100.5018);
+  static const _fallbackPosition = LatLng(16.4419, 102.8360); // KKU, Khon Kaen
+  LatLng _initialPosition = _fallbackPosition;
   final Set<Marker> _markers = {};
 
   // Current route index for each runner
@@ -44,6 +46,7 @@ class _MapViewState extends State<MapView> {
 
     _updateMarkers();
     _loadAvatarIcons();
+    _moveToUserLocation();
 
     // Move runners every 1.5 seconds
     _timer = Timer.periodic(const Duration(milliseconds: 1500), (_) {
@@ -55,6 +58,23 @@ class _MapViewState extends State<MapView> {
   void dispose() {
     _timer?.cancel();
     super.dispose();
+  }
+
+  Future<void> _moveToUserLocation() async {
+    try {
+      final permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) return;
+      final pos = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.low),
+      );
+      final userLatLng = LatLng(pos.latitude, pos.longitude);
+      if (!mounted) return;
+      setState(() => _initialPosition = userLatLng);
+      mapController.animateCamera(CameraUpdate.newLatLng(userLatLng));
+    } catch (_) {
+      // Keep fallback position if location unavailable
+    }
   }
 
   Future<void> _loadAvatarIcons() async {

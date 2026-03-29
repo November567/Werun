@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../services/run_tracking_service.dart';
 import '../../../shared/widgets/run_stat_chip.dart';
@@ -23,7 +24,29 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
   bool _isStopping = false;
   Timer? _uiTimer;
 
-  static const _initialPosition = LatLng(13.7563, 100.5018);
+  static const _initialPosition = LatLng(16.4419, 102.8360); // KKU, Khon Kaen
+
+  @override
+  void initState() {
+    super.initState();
+    _moveToUserLocation();
+  }
+
+  Future<void> _moveToUserLocation() async {
+    try {
+      final permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) return;
+      final pos = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.low),
+      );
+      if (!mounted) return;
+      final controller = await _mapCompleter.future;
+      controller.animateCamera(
+        CameraUpdate.newLatLng(LatLng(pos.latitude, pos.longitude)),
+      );
+    } catch (_) {}
+  }
 
   @override
   void dispose() {
@@ -232,29 +255,12 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      onPressed: _startRun,
+                      onPressed: _startSimulation,
                       child: const Text(
                         'START RUN',
                         style: TextStyle(
                             fontSize: 16, fontWeight: FontWeight.bold),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  // SIMULATE
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Theme.of(context).colorScheme.primary,
-                        side: BorderSide(color: Theme.of(context).colorScheme.primary),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                      onPressed: _startSimulation,
-                      child: const Text('SIMULATE RUN (FAKE GPS)'),
                     ),
                   ),
                 ] else ...[

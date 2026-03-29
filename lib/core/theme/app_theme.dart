@@ -152,7 +152,7 @@ class AppTheme {
         ),
         bodyMedium: TextStyle(color: Colors.white70, fontSize: 14),
         bodySmall: TextStyle(color: Colors.white54, fontSize: 12),
-        labelSmall: TextStyle(color: Colors.white38, fontSize: 11),
+        labelSmall: TextStyle(color: Colors.white60, fontSize: 12),
       ),
     );
   }

@@ -29,7 +29,7 @@ class WeeklyChart extends StatelessWidget {
               ),
               Text(
                 "LAST 7 DAYS",
-                style: TextStyle(color: Colors.cyan, fontSize: 10),
+                style: TextStyle(color: Colors.cyan, fontSize: 12),
               ),
             ],
           ),
@@ -85,7 +85,7 @@ class WeeklyChart extends StatelessWidget {
                   child: Text(
                     days[index],
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: 12,
                       color: index == 2 ? Colors.lime : Colors.grey,
                       fontWeight: index == 2
                           ? FontWeight.bold

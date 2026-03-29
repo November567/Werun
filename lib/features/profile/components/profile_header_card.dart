@@ -50,7 +50,9 @@ class ProfileHeader extends StatelessWidget {
                   child: CircleAvatar(
                     radius: 60,
                     backgroundImage: NetworkImage(
-                      data['photoUrl'] ?? 'https://i.pravatar.cc/150',
+                      (data['avatarUrl'] as String?)?.isNotEmpty == true
+                          ? data['avatarUrl'] as String
+                          : 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y',
                     ),
                   ),
                 ),
