@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../components/profile_header_card.dart';
 import '../components/weekly_chart.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../auth/services/auth_service.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -14,10 +15,36 @@ class ProfileScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('WeRun'),
         leading: const Icon(Icons.arrow_back),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 12),
+        actions: [
+          const Padding(
+            padding: EdgeInsets.only(right: 4),
             child: Icon(Icons.settings, color: Colors.grey),
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.grey),
+            tooltip: 'Logout',
+            onPressed: () async {
+              final confirmed = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('Logout'),
+                  content: const Text('Are you sure you want to logout?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      child: const Text('Logout'),
+                    ),
+                  ],
+                ),
+              );
+              if (confirmed == true) {
+                await AuthService().signOut();
+              }
+            },
           ),
         ],
       ),
