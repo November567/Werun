@@ -15,9 +15,10 @@ class ProfileScreen extends StatelessWidget {
         elevation: 0,
         title: const Text(
           "WeRun",
-          style: TextStyle(color: Colors.lime, fontWeight: FontWeight.bold),
+          style: TextStyle(color: Color.fromARGB(255, 76, 175, 80), fontWeight: FontWeight.bold),
         ),
-        leading: const Icon(Icons.arrow_back, color: Colors.lime),
+        leading: const Icon(Icons.arrow_back, color: Color.fromARGB(255, 76, 175, 80),
+        ),
         actions: const [
           Padding(
             padding: EdgeInsets.only(right: 12),
@@ -66,7 +67,7 @@ class StatsSection extends StatelessWidget {
                     "1,284",
                     style: TextStyle(
                       fontSize: 32,
-                      color: Colors.lime,
+                      color: Color.fromARGB(255, 76, 175, 80),
                       fontWeight: FontWeight.bold,
                     ),
                   ),

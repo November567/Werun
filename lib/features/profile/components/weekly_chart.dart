@@ -29,7 +29,7 @@ class WeeklyChart extends StatelessWidget {
               ),
               Text(
                 "LAST 7 DAYS",
-                style: TextStyle(color: Colors.cyan, fontSize: 10),
+                style: TextStyle(color: Color.fromARGB(255, 76, 175, 80), fontSize: 10),
               ),
             ],
           ),
@@ -50,11 +50,9 @@ class WeeklyChart extends StatelessWidget {
                     height: 120 * h,
                     decoration: BoxDecoration(
                       color: index == 2
-                          ? Colors
-                                .lime // WED
+                          ? Color.fromARGB(255, 76, 175, 80) // WED
                           : index == 4
-                          ? Colors
-                                .cyan // FRI
+                          ? Color.fromARGB(255, 76, 175, 80) // FRI
                           : Colors.grey[800],
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(4),
@@ -62,7 +60,7 @@ class WeeklyChart extends StatelessWidget {
                       boxShadow: index == 2
                           ? [
                               BoxShadow(
-                                color: Colors.lime.withValues(alpha: 0.4),
+                                color: Color.fromARGB(255, 76, 175, 80).withValues(alpha: 0.4),
                                 blurRadius: 10,
                               ),
                             ]
@@ -86,7 +84,7 @@ class WeeklyChart extends StatelessWidget {
                     days[index],
                     style: TextStyle(
                       fontSize: 10,
-                      color: index == 2 ? Colors.lime : Colors.grey,
+                      color: index == 2 ? Color.fromARGB(255, 76, 175, 80) : Colors.grey,
                       fontWeight: index == 2
                           ? FontWeight.bold
                           : FontWeight.normal,
@@ -211,7 +209,7 @@ class RunCard extends StatelessWidget {
               Text(
                 time,
                 style: const TextStyle(
-                  color: Colors.lime,
+                  color: Color.fromARGB(255, 76, 175, 80),
                   fontWeight: FontWeight.bold,
                 ),
               ),

@@ -21,7 +21,8 @@ class ProfileHeader extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
-            child: CircularProgressIndicator(color: Colors.lime),
+            child: CircularProgressIndicator(color: Color.fromARGB(255, 76, 175, 80),
+            ),
           );
         }
 
@@ -42,12 +43,12 @@ class ProfileHeader extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: Colors.lime.withValues(alpha: 0.3),
+                      color: Color.fromARGB(255, 76, 175, 80).withValues(alpha: 0.3),
                       width: 2,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.lime.withValues(alpha: 0.2),
+                        color: Color.fromARGB(255, 76, 175, 80).withValues(alpha: 0.2),
                         blurRadius: 20,
                         spreadRadius: 2,
                       ),
@@ -70,7 +71,7 @@ class ProfileHeader extends StatelessWidget {
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.lime,
+                      color: Color.fromARGB(255, 76, 175, 80),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Text(
@@ -101,7 +102,7 @@ class ProfileHeader extends StatelessWidget {
 
             const Text(
               "RUNNER",
-              style: TextStyle(color: Colors.lime, letterSpacing: 2),
+              style: TextStyle(color: Color.fromARGB(255, 76, 175, 80), letterSpacing: 2),
             ),
           ],
         );
