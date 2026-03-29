@@ -91,7 +91,7 @@ class RunnerProfileSheet extends StatelessWidget {
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.fromBorderSide(
-                    BorderSide(color: AppColors.accent, width: 2),
+                    BorderSide(color: AppColors.actionGreen, width: 2),
                   ),
                 ),
                 child: CircleAvatar(
@@ -114,11 +114,11 @@ class RunnerProfileSheet extends StatelessWidget {
                   const SizedBox(height: 4),
                   const Row(
                     children: [
-                      Icon(Icons.circle, color: AppColors.accent, size: 10),
+                      Icon(Icons.circle, color: AppColors.actionGreen, size: 10),
                       SizedBox(width: 6),
                       Text(
                         'Running now',
-                        style: TextStyle(color: AppColors.accent, fontSize: 13),
+                        style: TextStyle(color: AppColors.actionGreen, fontSize: 13),
                       ),
                     ],
                   ),

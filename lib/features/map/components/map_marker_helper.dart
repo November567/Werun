@@ -9,7 +9,7 @@ import 'package:http/http.dart' as http;
 Future<BitmapDescriptor> buildAvatarMarker({
   required String imageUrl,
   required String label,
-  Color borderColor = Colors.lime,
+  Color borderColor = Colors.green,
   int size = 120,
 }) async {
   // Download image bytes

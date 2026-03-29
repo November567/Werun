@@ -41,7 +41,7 @@ class RunPlaceCard extends StatelessWidget {
                   SizedBox(height: 6),
                   Text(
                     'Easy · 4.61 km · 32m 30s',
-                    style: TextStyle(color: Colors.greenAccent, fontSize: 12),
+                    style: TextStyle(color: Colors.green, fontSize: 12),
                   ),
                   SizedBox(height: 6),
                   Text('See more', style: TextStyle(color: Colors.white54)),
