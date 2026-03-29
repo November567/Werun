@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/post.dart';
+import '../../services/post_service.dart';
 
 class ViewDetailScreen extends StatefulWidget {
   final Post post;
@@ -14,6 +15,7 @@ class ViewDetailScreen extends StatefulWidget {
 
 class _ViewDetailScreenState extends State<ViewDetailScreen>
     with SingleTickerProviderStateMixin {
+  final _postService = PostService();
   final TextEditingController _commentController = TextEditingController();
 
   bool isLiked = false;
@@ -40,25 +42,13 @@ class _ViewDetailScreenState extends State<ViewDetailScreen>
   /// 👍 LIKE
   Future<void> _toggleLike() async {
     setState(() => isLiked = !isLiked);
-
-    await FirebaseFirestore.instance
-        .collection('posts')
-        .doc(widget.post.id)
-        .update({'likes': FieldValue.increment(isLiked ? 1 : -1)});
-
+    await _postService.toggleLike(widget.post.id, isLiked: isLiked);
     _likeController.forward().then((_) => _likeController.reverse());
   }
 
   /// 💬 COMMENT
   Future<void> _addComment(String text) async {
-    final newComment = "$currentUser: $text";
-
-    await FirebaseFirestore.instance
-        .collection('posts')
-        .doc(widget.post.id)
-        .update({
-          'comments': FieldValue.arrayUnion([newComment]),
-        });
+    await _postService.addComment(widget.post.id, '$currentUser: $text');
   }
 
   /// 🔗 SHARE (สวย + มีข้อมูลครบ)

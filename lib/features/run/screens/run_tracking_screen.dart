@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../services/run_tracking_service.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../shared/widgets/run_stat_chip.dart';
+import '../../../shared/utils/run_formatters.dart';
 import 'post_run_sheet.dart';
 
 class RunTrackingScreen extends StatefulWidget {
@@ -112,26 +115,12 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
       backgroundColor: Colors.transparent,
       builder: (_) => PostRunSheet(
         distance: '${_service.distanceKm.toStringAsFixed(2)} km',
-        duration: _formatDuration(_service.elapsed),
-        pace: '${_formatPace(_service.paceMinPerKm)} /km',
+        duration: formatDuration(_service.elapsed),
+        pace: '${formatPace(_service.paceMinPerKm)} /km',
         snapshotFuture: snapshotFuture,
         imageUrlFuture: imageUrlFuture,
       ),
     );
-  }
-
-  String _formatDuration(Duration d) {
-    final h = d.inHours.toString().padLeft(2, '0');
-    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$h:$m:$s';
-  }
-
-  String _formatPace(double? pace) {
-    if (pace == null) return "--'--\"";
-    final min = pace.floor();
-    final sec = ((pace - min) * 60).round();
-    return "$min'${sec.toString().padLeft(2, '0')}\"";
   }
 
   Set<Polyline> get _polylines {
@@ -140,7 +129,7 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
       Polyline(
         polylineId: const PolylineId('route'),
         points: _service.routePoints.toList(),
-        color: Colors.lime,
+        color: AppColors.accent,
         width: 5,
       ),
     };
@@ -166,14 +155,14 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0E0E0E),
+      backgroundColor: AppColors.cardBg,
       appBar: AppBar(
         backgroundColor: Colors.black,
         title: const Text(
           'Track Run',
-          style: TextStyle(color: Colors.lime, fontWeight: FontWeight.bold),
+          style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold),
         ),
-        iconTheme: const IconThemeData(color: Colors.lime),
+        iconTheme: const IconThemeData(color: AppColors.accent),
       ),
       body: Column(
         children: [
@@ -196,7 +185,7 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
 
           // Stats + buttons
           Container(
-            color: const Color(0xFF1A1A1A),
+            color: AppColors.surfaceBg,
             padding:
                 const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
             child: Column(
@@ -206,7 +195,7 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
                     padding: EdgeInsets.only(bottom: 12),
                     child: Text(
                       'Location permission denied. Please enable it in settings.',
-                      style: TextStyle(color: Colors.redAccent),
+                      style: TextStyle(color: AppColors.actionRed),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -214,19 +203,17 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _StatBox(
+                    RunStatChip(
                       label: 'Distance',
-                      value:
-                          '${_service.distanceKm.toStringAsFixed(2)} km',
+                      value: '${_service.distanceKm.toStringAsFixed(2)} km',
                     ),
-                    _StatBox(
+                    RunStatChip(
                       label: 'Time',
-                      value: _formatDuration(_service.elapsed),
+                      value: formatDuration(_service.elapsed),
                     ),
-                    _StatBox(
+                    RunStatChip(
                       label: 'Pace',
-                      value:
-                          '${_formatPace(_service.paceMinPerKm)} /km',
+                      value: '${formatPace(_service.paceMinPerKm)} /km',
                     ),
                   ],
                 ),
@@ -240,7 +227,7 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
                     height: 52,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.lime,
+                        backgroundColor: AppColors.accent,
                         foregroundColor: Colors.black,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -261,8 +248,8 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
                     height: 48,
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.lime,
-                        side: const BorderSide(color: Colors.lime),
+                        foregroundColor: AppColors.accent,
+                        side: const BorderSide(color: AppColors.accent),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -278,7 +265,7 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
                     height: 52,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.redAccent,
+                        backgroundColor: AppColors.actionRed,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -308,29 +295,6 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _StatBox extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _StatBox({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(value,
-            style: const TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold)),
-        const SizedBox(height: 4),
-        Text(label,
-            style: const TextStyle(color: Colors.grey, fontSize: 12)),
-      ],
     );
   }
 }
