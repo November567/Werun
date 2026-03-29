@@ -1,8 +1,15 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
     id("com.google.gms.google-services")
+}
+
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) load(file.inputStream())
 }
 
 android {
@@ -16,7 +23,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+        jvmTarget = "17"
     }
 
     defaultConfig {
@@ -27,7 +34,7 @@ android {
         versionName = flutter.versionName
         multiDexEnabled = true
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] =
-            project.findProperty("GOOGLE_MAPS_API_KEY") ?: "YOUR_API_KEY_HERE"
+            localProperties.getProperty("GOOGLE_MAPS_API_KEY") ?: ""
     }
 
     buildTypes {
@@ -40,7 +47,7 @@ android {
     // files in dependencies (e.g. META-INF licenses, plugin resources).
     // These duplicates trigger a com.google.common.base.VerifyException during
     // the merge task. Excluding or picking first avoids the crash.
-    packagingOptions {
+    packaging {
         resources {
             // pickFirst is safer than exclude if a file is actually needed by
             // some library. We limit to a few common problematic patterns.

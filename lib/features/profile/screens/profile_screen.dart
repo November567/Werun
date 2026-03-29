@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../components/profile_header_card.dart';
 import '../components/weekly_chart.dart';
-import '../../auth/services/auth_service.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -19,10 +18,10 @@ class ProfileScreen extends StatelessWidget {
           style: TextStyle(color: Colors.lime, fontWeight: FontWeight.bold),
         ),
         leading: const Icon(Icons.arrow_back, color: Colors.lime),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.redAccent),
-            onPressed: () => AuthService().signOut(),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 12),
+            child: Icon(Icons.settings, color: Colors.grey),
           ),
         ],
       ),
