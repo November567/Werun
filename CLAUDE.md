@@ -35,24 +35,40 @@ Code is organized under `lib/features/` by feature:
 
 - `auth/` — Login/register screens, `AuthService` wrapping FirebaseAuth
 - `view/` — Home feed, post creation, post detail; uses StreamBuilder for Firestore reactivity
-- `map/` — Interactive map using `flutter_map` with location search
+- `map/` — Google Maps view with animated fake runners, custom avatar markers, runner profile sheet
+- `run/` — GPS run tracking screen, simulation mode, post-run share sheet
 - `profile/` — User profile, weekly stats chart, activity history
-- `models/post.dart` — Core `Post` model with Firestore serialization
-- `services/post_service.dart` — Firestore CRUD for posts (create, stream, like, save)
+- `models/post.dart` — Core `Post` model; use `Post.fromFirestore(doc)` (sets `id` from `doc.id`); **never** use `Post.fromJson`/`fromMap` for Firestore documents as those lose the document ID
+- `services/post_service.dart` — All Firestore writes for posts: `createPost`, `toggleLike`, `addComment`, `savePost`, `getUserData`
 
-`lib/components/` holds shared UI (bottom nav bar). `lib/core/`, `lib/routes/`, and `lib/shared/` are currently empty placeholders.
+### Shared Code
+
+`lib/core/constants/`:
+- `app_colors.dart` — All color constants (`AppColors.accent`, `AppColors.surfaceBg`, etc.). Do not hardcode colors.
+- `fake_route.dart` — `kFakeRoute`: the shared 29-point Bangkok loop used by both `RunTrackingService` (simulation) and `MapView` (fake runner animation).
+
+`lib/shared/widgets/`:
+- `run_stat_chip.dart` — `RunStatChip(label, value)`: lime-colored stat display. Replaces the private `_StatChip`/`_StatBox`/`_StatItem` pattern — do not create new private versions.
+- `bottom_sheet_container.dart` — `BottomSheetContainer`: dark bottom sheet wrapper with handle bar. Use this for all modal bottom sheets.
+
+`lib/shared/utils/`:
+- `run_formatters.dart` — `formatDuration(Duration)` and `formatPace(double?)` for run display strings.
 
 ### State Management
 
-No state management framework is used. Screens use `StatefulWidget`/`setState` for local state and `StreamBuilder` for reactive Firestore data. Services are instantiated per-screen (no global state container).
+No state management framework. Screens use `StatefulWidget`/`setState` for local state and `StreamBuilder` for reactive Firestore data. Services are instantiated per-screen.
 
 ### Backend
 
-Firebase stack: Auth, Firestore (posts/users), Storage (images), Messaging (push notifications). Firebase config is auto-generated in `lib/firebase_options.dart`. The `.env` file holds `API_URL` loaded via `flutter_dotenv`.
+Firebase stack: Auth, Firestore (posts/users), Storage (run_maps/ images), Messaging. Firebase config is auto-generated in `lib/firebase_options.dart`. `.env` holds `GOOGLE_API_KEY` loaded via `flutter_dotenv`. The Google Maps Android key is also stored in `android/local.properties` as `GOOGLE_MAPS_API_KEY` and injected via `build.gradle.kts` manifestPlaceholders.
+
+### Map / Run Features
+
+- `MapView` shows 4 animated fake runners (Alex/Sam/Mia/Tom) moving along `kFakeRoute` every 1.5 s using `Timer.periodic`. Tapping a runner opens `RunnerProfileSheet`.
+- `RunTrackingService` handles real GPS via `geolocator` and simulation via `kFakeRoute`. The `stop()` method sets `_isSimulating = false` **before** any `await` — preserve this ordering.
+- After stopping a run, `RunTrackingScreen` captures a map snapshot and uploads it to Firebase Storage in the background while `PostRunSheet` is already open.
 
 ### UI Conventions
 
-- Dark theme: black background (`#000000`) with green accents (`Colors.green` / `#00FF00`)
-- Material Design components throughout
-- Modal bottom sheets for image picking
-- Firestore security rules are in `firestore.rules`
+- Dark theme: `AppColors.scaffoldBg` (`#0E0E0E`) / `AppColors.surfaceBg` (`#1A1A1A`) backgrounds with `AppColors.accent` (`Colors.lime`) highlights.
+- Firestore security rules: `firestore.rules` and `storage.rules`.

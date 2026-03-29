@@ -2,39 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-
-// Fake route around Chatuchak area, Bangkok (~3.5 km loop)
-const _fakeRoute = [
-  LatLng(13.7563, 100.5018),
-  LatLng(13.7570, 100.5025),
-  LatLng(13.7578, 100.5033),
-  LatLng(13.7585, 100.5042),
-  LatLng(13.7591, 100.5053),
-  LatLng(13.7596, 100.5065),
-  LatLng(13.7599, 100.5078),
-  LatLng(13.7600, 100.5091),
-  LatLng(13.7598, 100.5104),
-  LatLng(13.7594, 100.5116),
-  LatLng(13.7588, 100.5127),
-  LatLng(13.7580, 100.5136),
-  LatLng(13.7571, 100.5142),
-  LatLng(13.7561, 100.5145),
-  LatLng(13.7550, 100.5144),
-  LatLng(13.7540, 100.5140),
-  LatLng(13.7531, 100.5133),
-  LatLng(13.7524, 100.5123),
-  LatLng(13.7519, 100.5112),
-  LatLng(13.7517, 100.5100),
-  LatLng(13.7518, 100.5087),
-  LatLng(13.7521, 100.5075),
-  LatLng(13.7527, 100.5064),
-  LatLng(13.7534, 100.5054),
-  LatLng(13.7542, 100.5046),
-  LatLng(13.7550, 100.5039),
-  LatLng(13.7556, 100.5030),
-  LatLng(13.7560, 100.5022),
-  LatLng(13.7563, 100.5018),
-];
+import '../../../core/constants/fake_route.dart';
 
 class RunTrackingService {
   final _routePoints = <LatLng>[];
@@ -99,17 +67,17 @@ class RunTrackingService {
     _simulationTimer = Timer.periodic(
       Duration(milliseconds: intervalMs),
       (timer) {
-        if (index >= _fakeRoute.length) {
+        if (index >= kFakeRoute.length) {
           timer.cancel();
           _isSimulating = false;
           onUpdate();
           return;
         }
 
-        final point = _fakeRoute[index];
+        final point = kFakeRoute[index];
 
         if (index > 0) {
-          final prev = _fakeRoute[index - 1];
+          final prev = kFakeRoute[index - 1];
           _distanceMeters += Geolocator.distanceBetween(
             prev.latitude,
             prev.longitude,

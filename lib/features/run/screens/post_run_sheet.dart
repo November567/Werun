@@ -2,6 +2,9 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../shared/widgets/run_stat_chip.dart';
+import '../../../shared/widgets/bottom_sheet_container.dart';
 
 class PostRunSheet extends StatefulWidget {
   final String distance;
@@ -91,38 +94,15 @@ class _PostRunSheetState extends State<PostRunSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(
-        left: 24,
-        right: 24,
-        top: 24,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-      ),
-      decoration: const BoxDecoration(
-        color: Color(0xFF1A1A1A),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+    return BottomSheetContainer(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Handle bar
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[700],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-
           const Text(
             'Share Your Run',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.textPrimary,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -133,15 +113,15 @@ class _PostRunSheetState extends State<PostRunSheet> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF0E0E0E),
+              color: AppColors.cardBg,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _StatChip(label: 'Distance', value: widget.distance),
-                _StatChip(label: 'Time', value: widget.duration),
-                _StatChip(label: 'Pace', value: widget.pace),
+                RunStatChip(label: 'Distance', value: widget.distance),
+                RunStatChip(label: 'Time', value: widget.duration),
+                RunStatChip(label: 'Pace', value: widget.pace),
               ],
             ),
           ),
@@ -151,15 +131,17 @@ class _PostRunSheetState extends State<PostRunSheet> {
           FutureBuilder<Uint8List?>(
             future: widget.snapshotFuture,
             builder: (context, snap) {
-              if (snap.connectionState != ConnectionState.done || snap.data == null) {
+              if (snap.connectionState != ConnectionState.done ||
+                  snap.data == null) {
                 return Container(
                   height: 160,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0E0E0E),
+                    color: AppColors.cardBg,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Center(
-                    child: CircularProgressIndicator(color: Colors.lime, strokeWidth: 2),
+                    child: CircularProgressIndicator(
+                        color: AppColors.accent, strokeWidth: 2),
                   ),
                 );
               }
@@ -179,12 +161,12 @@ class _PostRunSheetState extends State<PostRunSheet> {
           // Title
           TextField(
             controller: _titleController,
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(color: AppColors.textPrimary),
             decoration: InputDecoration(
               hintText: 'Run title (e.g. Morning Sprint)',
-              hintStyle: const TextStyle(color: Colors.grey),
+              hintStyle: const TextStyle(color: AppColors.textSecondary),
               filled: true,
-              fillColor: const Color(0xFF0E0E0E),
+              fillColor: AppColors.cardBg,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
@@ -196,13 +178,13 @@ class _PostRunSheetState extends State<PostRunSheet> {
           // Description
           TextField(
             controller: _descController,
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(color: AppColors.textPrimary),
             maxLines: 3,
             decoration: InputDecoration(
               hintText: 'How did it go? (optional)',
-              hintStyle: const TextStyle(color: Colors.grey),
+              hintStyle: const TextStyle(color: AppColors.textSecondary),
               filled: true,
-              fillColor: const Color(0xFF0E0E0E),
+              fillColor: AppColors.cardBg,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
@@ -217,7 +199,7 @@ class _PostRunSheetState extends State<PostRunSheet> {
             height: 52,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.lime,
+                backgroundColor: AppColors.accent,
                 foregroundColor: Colors.black,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
@@ -244,31 +226,6 @@ class _PostRunSheetState extends State<PostRunSheet> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _StatChip extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _StatChip({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.lime,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
-      ],
     );
   }
 }
