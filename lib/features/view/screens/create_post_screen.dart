@@ -59,7 +59,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.green,
+                  color: Theme.of(context).colorScheme.primary,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: isLoading
@@ -189,7 +189,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       if (!mounted) return;
 
       Navigator.pop(context);
-      _showSnack('✅ Post created!', Colors.green);
+      _showSnack('✅ Post created!', Theme.of(context).colorScheme.primary);
     } catch (e) {
       _showSnack('❌ $e', Colors.red);
     } finally {

@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../core/constants/app_colors.dart';
 
 /// Reusable stat display used in run stats rows.
-/// Replaces the private _StatChip / _StatBox / _StatItem widgets
-/// that were duplicated across post_run_sheet, run_tracking_screen,
-/// and runner_profile_sheet.
+/// Replaces the private _StatChip / _StatBox / _StatItem pattern.
 class RunStatChip extends StatelessWidget {
   final String label;
   final String value;
@@ -13,13 +10,14 @@ class RunStatChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           value,
-          style: const TextStyle(
-            color: AppColors.accent,
+          style: TextStyle(
+            color: primary,
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
@@ -27,7 +25,7 @@ class RunStatChip extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           label,
-          style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+          style: Theme.of(context).textTheme.labelSmall,
         ),
       ],
     );

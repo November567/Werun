@@ -25,30 +25,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => isLoading = true);
-
     try {
       final user = await AuthService().registerWithEmail(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
-
-      await FirebaseFirestore.instance.collection('users').doc(user!.uid).set({
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user!.uid)
+          .set({
         'fullName': fullNameController.text.trim(),
         'nickName': nickNameController.text.trim(),
         'email': emailController.text.trim(),
         'phone': phoneController.text.trim(),
         'createdAt': Timestamp.now(),
       });
-
       if (!mounted) return;
       Navigator.of(context).popUntil((route) => route.isFirst);
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.message ?? 'Register failed')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.message ?? 'Register failed')));
     } catch (e) {
       debugPrint('Unexpected register error: $e');
     } finally {
@@ -58,8 +56,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Scaffold(
-      backgroundColor: Colors.black,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -68,88 +67,61 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "Create Your Account",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Text(
+                  'Create Your Account',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(fontSize: 26),
                 ),
                 const SizedBox(height: 30),
 
-                _buildInputField(
-                  controller: fullNameController,
-                  hint: "Full Name",
-                ),
+                _field(controller: fullNameController, hint: 'Full Name'),
                 const SizedBox(height: 12),
-
-                _buildInputField(
-                  controller: nickNameController,
-                  hint: "Nickname",
-                ),
+                _field(controller: nickNameController, hint: 'Nickname'),
                 const SizedBox(height: 12),
-
-                _buildInputField(
-                  controller: emailController,
-                  hint: "Email",
-                  icon: Icons.email,
-                ),
+                _field(
+                    controller: emailController,
+                    hint: 'Email',
+                    icon: Icons.email),
                 const SizedBox(height: 12),
-
-                _buildInputField(
-                  controller: phoneController,
-                  hint: "Phone Number",
-                  icon: Icons.phone,
-                ),
+                _field(
+                    controller: phoneController,
+                    hint: 'Phone Number',
+                    icon: Icons.phone),
                 const SizedBox(height: 12),
-
-                _buildInputField(
-                  controller: passwordController,
-                  hint: "Password",
-                  icon: Icons.lock,
-                  obscureText: true,
-                ),
+                _field(
+                    controller: passwordController,
+                    hint: 'Password',
+                    icon: Icons.lock,
+                    obscure: true),
 
                 const Spacer(),
 
                 Row(
                   children: [
                     Expanded(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(
-                            255,
-                            255,
-                            255,
-                            255,
-                          ),
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const LoginScreen()),
                         ),
-                        onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const LoginScreen(),
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          "Back",
-                          style: TextStyle(color: Colors.black),
-                        ),
+                        child: const Text('Back'),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.black,
-                        ),
                         onPressed: isLoading ? null : _register,
                         child: isLoading
-                            ? const CircularProgressIndicator()
-                            : const Text("Continue"),
+                            ? SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                    color: Colors.black, strokeWidth: 2),
+                              )
+                            : const Text('Continue'),
                       ),
                     ),
                   ],
@@ -162,28 +134,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildInputField({
+  Widget _field({
     required TextEditingController controller,
     required String hint,
     IconData? icon,
-    bool obscureText = false,
+    bool obscure = false,
   }) {
     return TextFormField(
       controller: controller,
-      obscureText: obscureText,
-      style: const TextStyle(color: Colors.white),
-      validator: (value) =>
-          value == null || value.isEmpty ? "Required field" : null,
+      obscureText: obscure,
+      validator: (v) => v == null || v.isEmpty ? 'Required field' : null,
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: Colors.grey),
         prefixIcon: icon != null ? Icon(icon, color: Colors.grey) : null,
-        filled: true,
-        fillColor: Colors.grey[850],
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
-        ),
       ),
     );
   }

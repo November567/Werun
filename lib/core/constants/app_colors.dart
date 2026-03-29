@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 
 /// Centralized color palette for the WeRun app.
 /// Use these instead of hardcoding colors throughout the codebase.
 class AppColors {
   AppColors._();
 
-  // Brand
-  static const Color accent = Colors.lime;
+  // Brand — matches AppTheme.primary
+  static const Color accent = AppTheme.primary;
 
   // Backgrounds
   static const Color scaffoldBg = Color(0xFF0E0E0E);

@@ -57,9 +57,9 @@ class _MediaSectionState extends State<MediaSection> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✅ อัปโหลดรูปสำเร็จ'),
-          backgroundColor: Colors.green,
+        SnackBar(
+          content: const Text('✅ อัปโหลดรูปสำเร็จ'),
+          backgroundColor: Theme.of(context).colorScheme.primary,
         ),
       );
     } catch (e) {
@@ -77,7 +77,7 @@ class _MediaSectionState extends State<MediaSection> {
   void _showPickerSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1C1C1E),
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -124,7 +124,7 @@ class _MediaSectionState extends State<MediaSection> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF2a2a2a),
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
       ),
       padding: const EdgeInsets.all(16),
@@ -158,7 +158,7 @@ class _MediaSectionState extends State<MediaSection> {
                         color: Colors.grey[800],
                         border: Border.all(
                           color: _currentImageUrl != null
-                              ? Colors.green
+                              ? Theme.of(context).colorScheme.primary
                               : Colors.grey[700]!,
                           width: 1.5,
                         ),
@@ -294,7 +294,7 @@ class _MediaSectionState extends State<MediaSection> {
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: isSelected
-                              ? Colors.green
+                              ? Theme.of(context).colorScheme.primary
                               : Colors.grey[700]!,
                           width: isSelected ? 2 : 1,
                         ),

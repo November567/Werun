@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_colors.dart';
 import '../../../shared/widgets/run_stat_chip.dart';
 import '../../../shared/widgets/bottom_sheet_container.dart';
 
@@ -88,10 +87,10 @@ class RunnerProfileSheet extends StatelessWidget {
           Row(
             children: [
               Container(
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.fromBorderSide(
-                    BorderSide(color: AppColors.accent, width: 2),
+                    BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
                   ),
                 ),
                 child: CircleAvatar(
@@ -106,19 +105,19 @@ class RunnerProfileSheet extends StatelessWidget {
                   Text(
                     runner.name,
                     style: const TextStyle(
-                      color: AppColors.textPrimary,
+                      color: Colors.white,
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.circle, color: AppColors.accent, size: 10),
-                      SizedBox(width: 6),
+                      Icon(Icons.circle, color: Theme.of(context).colorScheme.primary, size: 10),
+                      const SizedBox(width: 6),
                       Text(
                         'Running now',
-                        style: TextStyle(color: AppColors.accent, fontSize: 13),
+                        style: TextStyle(color: Theme.of(context).colorScheme.primary, fontSize: 13),
                       ),
                     ],
                   ),
@@ -133,7 +132,7 @@ class RunnerProfileSheet extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.cardBg,
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(14),
             ),
             child: Column(
@@ -142,7 +141,7 @@ class RunnerProfileSheet extends StatelessWidget {
                 const Text(
                   "Today's Run",
                   style: TextStyle(
-                    color: AppColors.textSecondary,
+                    color: Colors.grey,
                     fontSize: 12,
                     letterSpacing: 1,
                   ),

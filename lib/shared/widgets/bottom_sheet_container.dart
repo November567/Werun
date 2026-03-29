@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../core/constants/app_colors.dart';
 
 /// Standard dark bottom sheet wrapper used across the app.
-/// Provides the rounded top corners, dark background, and drag handle.
+/// Provides rounded top corners, themed surface background, and drag handle.
 class BottomSheetContainer extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -16,12 +15,14 @@ class BottomSheetContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.of(context).viewInsets.bottom;
+    final surface = Theme.of(context).colorScheme.surface;
+
     return Container(
       padding: padding ??
           EdgeInsets.only(left: 24, right: 24, top: 24, bottom: bottom + 24),
-      decoration: const BoxDecoration(
-        color: AppColors.surfaceBg,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

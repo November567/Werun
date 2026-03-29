@@ -2,7 +2,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../core/constants/app_colors.dart';
 import '../../../shared/widgets/run_stat_chip.dart';
 import '../../../shared/widgets/bottom_sheet_container.dart';
 
@@ -102,7 +101,7 @@ class _PostRunSheetState extends State<PostRunSheet> {
           const Text(
             'Share Your Run',
             style: TextStyle(
-              color: AppColors.textPrimary,
+              color: Colors.white,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -113,7 +112,7 @@ class _PostRunSheetState extends State<PostRunSheet> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.cardBg,
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -136,12 +135,12 @@ class _PostRunSheetState extends State<PostRunSheet> {
                 return Container(
                   height: 160,
                   decoration: BoxDecoration(
-                    color: AppColors.cardBg,
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Center(
+                  child: Center(
                     child: CircularProgressIndicator(
-                        color: AppColors.accent, strokeWidth: 2),
+                        color: Theme.of(context).colorScheme.primary, strokeWidth: 2),
                   ),
                 );
               }
@@ -161,12 +160,12 @@ class _PostRunSheetState extends State<PostRunSheet> {
           // Title
           TextField(
             controller: _titleController,
-            style: const TextStyle(color: AppColors.textPrimary),
+            style: const TextStyle(color: Colors.white),
             decoration: InputDecoration(
               hintText: 'Run title (e.g. Morning Sprint)',
-              hintStyle: const TextStyle(color: AppColors.textSecondary),
+              hintStyle: const TextStyle(color: Colors.grey),
               filled: true,
-              fillColor: AppColors.cardBg,
+              fillColor: Theme.of(context).colorScheme.surface,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
@@ -178,13 +177,13 @@ class _PostRunSheetState extends State<PostRunSheet> {
           // Description
           TextField(
             controller: _descController,
-            style: const TextStyle(color: AppColors.textPrimary),
+            style: const TextStyle(color: Colors.white),
             maxLines: 3,
             decoration: InputDecoration(
               hintText: 'How did it go? (optional)',
-              hintStyle: const TextStyle(color: AppColors.textSecondary),
+              hintStyle: const TextStyle(color: Colors.grey),
               filled: true,
-              fillColor: AppColors.cardBg,
+              fillColor: Theme.of(context).colorScheme.surface,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
@@ -199,7 +198,7 @@ class _PostRunSheetState extends State<PostRunSheet> {
             height: 52,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.accent,
+                backgroundColor: Theme.of(context).colorScheme.primary,
                 foregroundColor: Colors.black,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),

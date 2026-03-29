@@ -49,7 +49,7 @@ class _TagsSectionState extends State<TagsSection> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF2a2a2a),
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
       ),
       padding: const EdgeInsets.all(16),
@@ -171,7 +171,7 @@ class _TagsSectionState extends State<TagsSection> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Row(
               children: [
-                Icon(Icons.location_on, color: Colors.green, size: 16),
+                Icon(Icons.location_on, color: Theme.of(context).colorScheme.primary, size: 16),
                 const SizedBox(width: 8),
                 const Text(
                   'อุทยานสวนเกษตร มข.',
@@ -194,7 +194,7 @@ class _TagsSectionState extends State<TagsSection> {
         child: Container(
           decoration: BoxDecoration(
             color: isSelected ? Colors.transparent : Colors.grey[800],
-            border: isSelected ? Border.all(color: Colors.green, width: 2) : null,
+            border: isSelected ? Border.all(color: Theme.of(context).colorScheme.primary, width: 2) : null,
             borderRadius: BorderRadius.circular(20),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -202,7 +202,7 @@ class _TagsSectionState extends State<TagsSection> {
             label,
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: isSelected ? Colors.green : Colors.white,
+              color: isSelected ? Theme.of(context).colorScheme.primary : Colors.white,
               fontSize: 12,
               fontWeight: FontWeight.w500,
             ),
