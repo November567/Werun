@@ -19,7 +19,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _postService = PostService();
-  final Map<String, TextEditingController> _controllers = {};
   final Set<String> likedPosts = {};
 
   Future<void> _likePost(Post post) async {
@@ -30,51 +29,10 @@ class _HomeScreenState extends State<HomeScreen> {
     await _postService.toggleLike(post.id, isLiked: isNowLiked);
   }
 
-  Future<void> _addComment(Post post) async {
-    final controller = _controllers[post.id];
-    if (controller == null || controller.text.isEmpty) return;
-    final text = controller.text.trim();
-    controller.clear();
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    String userName = 'Me';
-    String userAvatar = '';
-    if (uid != null) {
-      final userData = await _postService.getUserData(uid);
-      userName = userData['nickName'] ?? userData['fullName'] ?? 'Me';
-      userAvatar = userData['avatarUrl'] ?? '';
-    }
-    await _postService.addComment(post.id, {
-      'userName': userName,
-      'userAvatar': userAvatar,
-      'text': text,
-    });
-  }
-
-  TextEditingController _getController(String id) {
-    _controllers.putIfAbsent(id, () => TextEditingController());
-    return _controllers[id]!;
-  }
-
-  @override
-  void dispose() {
-    for (var c in _controllers.values) {
-      c.dispose();
-    }
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0E0E0E),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const CreatePostScreen()),
-        ),
-        child: const Icon(Icons.add, color: Colors.black),
-      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -140,84 +98,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                 builder: (_) => ViewDetailScreen(post: post),
                               ),
                             ),
-                          ),
-
-                          // Last 2 comments preview
-                          ...post.comments.take(2).map(
-                                (c) => Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 4),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      CircleAvatar(
-                                        radius: 13,
-                                        backgroundImage: NetworkImage(
-                                          (c['userAvatar'] as String?)?.isNotEmpty == true
-                                              ? c['userAvatar'] as String
-                                              : 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y',
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: RichText(
-                                          text: TextSpan(
-                                            style: const TextStyle(fontSize: 13),
-                                            children: [
-                                              TextSpan(
-                                                text: '${c['userName'] ?? ''} ',
-                                                style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.w600),
-                                              ),
-                                              TextSpan(
-                                                text: c['text'] ?? '',
-                                                style: const TextStyle(
-                                                    color: Colors.white60),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                            onComment: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ViewDetailScreen(
+                                  post: post,
+                                  autoFocusComment: true,
                                 ),
                               ),
-
-                          // Comment input
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 6),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: TextField(
-                                    controller: _getController(post.id),
-                                    style: const TextStyle(
-                                        color: Colors.white, fontSize: 13),
-                                    decoration: InputDecoration(
-                                      hintText: 'Add a comment...',
-                                      hintStyle: const TextStyle(
-                                          color: Colors.white38, fontSize: 13),
-                                      filled: true,
-                                      fillColor: const Color(0xFF1A1A1A),
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                              horizontal: 14, vertical: 10),
-                                      border: OutlineInputBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(24),
-                                        borderSide: BorderSide.none,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: Icon(Icons.send,
-                                      color: Theme.of(context).colorScheme.primary, size: 20),
-                                  onPressed: () => _addComment(post),
-                                ),
-                              ],
                             ),
                           ),
 

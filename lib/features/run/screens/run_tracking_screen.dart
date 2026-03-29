@@ -1,5 +1,10 @@
 import 'dart:async';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -23,13 +28,71 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
   bool _permissionDenied = false;
   bool _isStopping = false;
   Timer? _uiTimer;
+  String _avatarUrl = '';
+  BitmapDescriptor? _avatarMarker;
 
   static const _initialPosition = LatLng(16.4419, 102.8360); // KKU, Khon Kaen
+
+  static const _anon =
+      'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
 
   @override
   void initState() {
     super.initState();
     _moveToUserLocation();
+    _loadAvatar();
+  }
+
+  Future<void> _loadAvatar() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    final url = (doc.data()?['avatarUrl'] as String?) ?? '';
+    if (mounted) setState(() => _avatarUrl = url);
+    final marker = await _buildAvatarMarker(url.isNotEmpty ? url : _anon);
+    if (mounted) setState(() => _avatarMarker = marker);
+  }
+
+  Future<BitmapDescriptor> _buildAvatarMarker(String imageUrl) async {
+    try {
+      final response = await http.get(Uri.parse(imageUrl));
+      final codec = await ui.instantiateImageCodec(
+        response.bodyBytes,
+        targetWidth: 56,
+        targetHeight: 56,
+      );
+      final frame = await codec.getNextFrame();
+      final image = frame.image;
+
+      final size = 56.0;
+      final border = 3.0;
+      final recorder = ui.PictureRecorder();
+      final canvas = Canvas(recorder);
+      final paint = Paint()..isAntiAlias = true;
+
+      // Green border circle
+      paint.color = Colors.green;
+      canvas.drawCircle(Offset(size / 2, size / 2), size / 2, paint);
+
+      // Clip to inner circle and draw avatar
+      final path = Path()
+        ..addOval(Rect.fromCircle(
+            center: Offset(size / 2, size / 2), radius: size / 2 - border));
+      canvas.clipPath(path);
+      paintImage(
+        canvas: canvas,
+        rect: Rect.fromLTWH(border, border, size - border * 2, size - border * 2),
+        image: image,
+        fit: BoxFit.cover,
+      );
+
+      final picture = recorder.endRecording();
+      final img = await picture.toImage(size.toInt(), size.toInt());
+      final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
+      return BitmapDescriptor.bytes(byteData!.buffer.asUint8List());
+    } catch (_) {
+      return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
+    }
   }
 
   Future<void> _moveToUserLocation() async {
@@ -112,13 +175,36 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
       _isStopping = false;
     });
 
-    // Snapshot + upload both run in background after sheet opens
-    final snapshotFuture = _mapCompleter.future
-        .then((controller) => controller.takeSnapshot())
-        .catchError((_) => null);
+    // Fit camera to full route (start → end) then snapshot
+    final snapshotFuture = _mapCompleter.future.then((controller) async {
+      final points = _service.routePoints;
+      if (points.length >= 2) {
+        double minLat = points.first.latitude;
+        double maxLat = points.first.latitude;
+        double minLng = points.first.longitude;
+        double maxLng = points.first.longitude;
+        for (final p in points) {
+          if (p.latitude < minLat) minLat = p.latitude;
+          if (p.latitude > maxLat) maxLat = p.latitude;
+          if (p.longitude < minLng) minLng = p.longitude;
+          if (p.longitude > maxLng) maxLng = p.longitude;
+        }
+        await controller.animateCamera(
+          CameraUpdate.newLatLngBounds(
+            LatLngBounds(
+              southwest: LatLng(minLat, minLng),
+              northeast: LatLng(maxLat, maxLng),
+            ),
+            80,
+          ),
+        );
+        await Future.delayed(const Duration(milliseconds: 800));
+      }
+      return controller.takeSnapshot();
+    }).catchError((_) => null);
 
     final imageUrlFuture = snapshotFuture.then((snapshot) async {
-      if (snapshot == null) return '';
+      if (snapshot == null || snapshot.isEmpty) return '';
       try {
         final ref = FirebaseStorage.instance
             .ref()
@@ -168,7 +254,7 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
       Marker(
         markerId: const MarkerId('current'),
         position: _service.routePoints.last,
-        icon:
+        icon: _avatarMarker ??
             BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
       ),
     };
