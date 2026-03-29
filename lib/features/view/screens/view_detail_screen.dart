@@ -15,9 +15,8 @@ class ViewDetailScreen extends StatefulWidget {
 class _ViewDetailScreenState extends State<ViewDetailScreen>
     with SingleTickerProviderStateMixin {
   final TextEditingController _commentController = TextEditingController();
+
   bool isLiked = false;
-  late int likeCount;
-  late List<String> comments;
 
   late AnimationController _likeController;
   late Animation<double> _likeAnimation;
@@ -27,47 +26,59 @@ class _ViewDetailScreenState extends State<ViewDetailScreen>
   @override
   void initState() {
     super.initState();
-    likeCount = widget.post.likes;
-    comments = List<String>.from(widget.post.comments);
 
     _likeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
+
     _likeAnimation = Tween<double>(begin: 1.0, end: 1.4).animate(
       CurvedAnimation(parent: _likeController, curve: Curves.elasticOut),
     );
   }
 
+  /// 👍 LIKE
   Future<void> _toggleLike() async {
-    setState(() {
-      if (isLiked) {
-        likeCount--;
-      } else {
-        likeCount++;
-        _likeController.forward().then((_) => _likeController.reverse());
-      }
-      isLiked = !isLiked;
-    });
+    setState(() => isLiked = !isLiked);
 
     await FirebaseFirestore.instance
         .collection('posts')
         .doc(widget.post.id)
-        .update({'likes': likeCount});
+        .update({'likes': FieldValue.increment(isLiked ? 1 : -1)});
+
+    _likeController.forward().then((_) => _likeController.reverse());
   }
 
+  /// 💬 COMMENT
   Future<void> _addComment(String text) async {
     final newComment = "$currentUser: $text";
-    setState(() {
-      comments.add(newComment);
-    });
 
     await FirebaseFirestore.instance
         .collection('posts')
         .doc(widget.post.id)
         .update({
-      'comments': FieldValue.arrayUnion([newComment]),
-    });
+          'comments': FieldValue.arrayUnion([newComment]),
+        });
+  }
+
+  /// 🔗 SHARE (สวย + มีข้อมูลครบ)
+  void _sharePost(Post post) {
+    final text =
+        """
+🏃‍♂️ WeRun แชร์เส้นทางวิ่ง
+
+👤 ${post.userName}
+📍 ${post.location}
+📏 ระยะทาง: ${post.distance}
+⏱ เวลา: ${post.duration}
+⚡ Pace: ${post.pace}
+
+📝 ${post.description}
+
+📲 ดูเพิ่มเติมใน WeRun App
+""";
+
+    Share.share(text);
   }
 
   @override
@@ -79,248 +90,247 @@ class _ViewDetailScreenState extends State<ViewDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    final post = widget.post;
-
     return Scaffold(
       backgroundColor: Colors.black,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              /// 🔙 PROFILE BAR
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundImage: post.userAvatar.isNotEmpty
-                          ? NetworkImage(post.userAvatar)
-                          : const NetworkImage("https://picsum.photos/100"),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      post.userName, // ✅ userName
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Spacer(),
-                    const Text(
-                      "Friend",
-                      style: TextStyle(color: Colors.white54),
-                    ),
-                  ],
-                ),
-              ),
 
-              /// 📍 LOCATION
-              if (post.location.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(left: 70, bottom: 10),
-                  child: Text(
-                    "Location: ${post.location}",
-                    style: const TextStyle(color: Colors.white54, fontSize: 12),
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('posts')
+            .doc(widget.post.id)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final data = snapshot.data!.data() as Map<String, dynamic>;
+          final post = Post.fromMap(data);
+
+          final comments = List<String>.from(data['comments'] ?? []);
+          final likes = data['likes'] ?? 0;
+
+          return SafeArea(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// 🔙 HEADER
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(
+                            Icons.arrow_back,
+                            color: Colors.white,
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                        CircleAvatar(
+                          backgroundImage: post.userAvatar.isNotEmpty
+                              ? NetworkImage(post.userAvatar)
+                              : null,
+                          backgroundColor: Colors.grey,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          post.userName,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
 
-              /// 🖼 CENTER IMAGE
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
+                  /// 🖼 IMAGE
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
                     child: Image.network(
                       post.imageUrl,
-                      width: MediaQuery.of(context).size.width * 0.9,
+                      width: double.infinity,
+                      height: 250,
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => Container(
-                        height: 200,
-                        color: Colors.grey.shade800,
-                        child: const Icon(Icons.broken_image,
-                            color: Colors.white54, size: 48),
+                        height: 250,
+                        color: Colors.grey[800],
+                        child: const Icon(
+                          Icons.broken_image,
+                          color: Colors.white54,
+                          size: 50,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 16),
 
-              /// 📊 STATS CARD
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 12),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade900,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  children: [
-                    /// 📍 RUN STATS ROW
-                    Row(
+                  const SizedBox(height: 12),
+
+                  /// 📊 RUN INFO
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.location_on,
-                                color: Colors.green, size: 18),
-                            const SizedBox(width: 4),
-                            Text(post.distance,
-                                style: const TextStyle(color: Colors.white)),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            const Icon(Icons.access_time,
-                                color: Colors.orange, size: 18),
-                            const SizedBox(width: 4),
-                            Text(post.duration,
-                                style: const TextStyle(color: Colors.white)),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            const Icon(Icons.directions_run,
-                                color: Colors.blue, size: 18),
-                            const SizedBox(width: 4),
-                            Text(post.pace,
-                                style: const TextStyle(color: Colors.white)),
-                          ],
-                        ),
+                        _infoItem(Icons.location_on, post.distance),
+                        _infoItem(Icons.access_time, post.duration),
+                        _infoItem(Icons.directions_run, post.pace),
                       ],
                     ),
-                    const SizedBox(height: 10),
-                    const Divider(color: Colors.white24),
-                    const SizedBox(height: 10),
+                  ),
 
-                    /// 🔥 ACTION ROW
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  const SizedBox(height: 10),
+
+                  /// 🔥 ACTION BAR (IG STYLE)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Row(
                       children: [
                         /// 👍 LIKE
-                        Row(
-                          children: [
-                            ScaleTransition(
-                              scale: _likeAnimation,
-                              child: IconButton(
-                                icon: Icon(
-                                  isLiked
-                                      ? Icons.thumb_up
-                                      : Icons.thumb_up_outlined,
-                                  color:
-                                      isLiked ? Colors.green : Colors.white,
-                                ),
-                                onPressed: _toggleLike,
-                              ),
+                        ScaleTransition(
+                          scale: _likeAnimation,
+                          child: IconButton(
+                            icon: Icon(
+                              isLiked
+                                  ? Icons.thumb_up
+                                  : Icons.thumb_up_outlined,
+                              color: isLiked ? Colors.green : Colors.white,
                             ),
-                            Text(
-                              "($likeCount)",
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                          ],
-                        ),
-
-                        /// 💬 COMMENT COUNT
-                        Row(
-                          children: [
-                            const Icon(Icons.comment, color: Colors.white),
-                            const SizedBox(width: 4),
-                            Text(
-                              "(${comments.length})",
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                          ],
-                        ),
-
-                        /// 🔗 SHARE
-                        GestureDetector(
-                          onTap: () {
-                            Share.share(
-                              "Check out this run!\n\n"
-                              "Distance: ${post.distance}\n"
-                              "Time: ${post.duration}\n"
-                              "Pace: ${post.pace}\n\n"
-                              "Shared from WeRun App 🚀",
-                            );
-                          },
-                          child: const Row(
-                            children: [
-                              Icon(Icons.share, color: Colors.white),
-                              SizedBox(width: 4),
-                              Text("Share",
-                                  style: TextStyle(color: Colors.white)),
-                            ],
+                            onPressed: _toggleLike,
                           ),
                         ),
 
-                        const Text(
-                          "Route detail",
-                          style: TextStyle(color: Colors.white),
+                        Text(
+                          "$likes",
+                          style: const TextStyle(color: Colors.white),
+                        ),
+
+                        const SizedBox(width: 20),
+
+                        /// 💬 COMMENT
+                        const Icon(Icons.comment, color: Colors.white),
+                        const SizedBox(width: 5),
+                        Text(
+                          "${comments.length}",
+                          style: const TextStyle(color: Colors.white),
+                        ),
+
+                        const Spacer(),
+
+                        /// 🔗 SHARE (ปุ่มสวย)
+                        GestureDetector(
+                          onTap: () => _sharePost(post),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Colors.green, Colors.lightGreen],
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(
+                                  Icons.share,
+                                  size: 18,
+                                  color: Colors.black,
+                                ),
+                                SizedBox(width: 6),
+                                Text(
+                                  "Share",
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
+                  ),
 
-              /// 💬 COMMENT LIST
-              ...comments.map(
-                (c) => Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  child: Text(c, style: const TextStyle(color: Colors.white)),
-                ),
-              ),
+                  const Divider(color: Colors.white24),
 
-              const SizedBox(height: 20),
-
-              /// 📝 COMMENT INPUT
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade800,
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        child: TextField(
-                          controller: _commentController,
-                          style: const TextStyle(color: Colors.white),
-                          decoration: const InputDecoration(
-                            hintText: "Comments",
-                            hintStyle: TextStyle(color: Colors.white54),
-                            border: InputBorder.none,
-                          ),
-                        ),
+                  /// 📝 DESCRIPTION
+                  if (post.description.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Text(
+                        post.description,
+                        style: const TextStyle(color: Colors.white70),
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.send, color: Colors.green),
-                      onPressed: () {
-                        if (_commentController.text.isNotEmpty) {
-                          _addComment(_commentController.text);
-                          _commentController.clear();
-                        }
-                      },
+
+                  /// 💬 COMMENT LIST (Realtime)
+                  ...comments.map(
+                    (c) => Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      child: Text(
+                        c,
+                        style: const TextStyle(color: Colors.white),
+                      ),
                     ),
-                  ],
-                ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  /// 📝 INPUT COMMENT
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade800,
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            child: TextField(
+                              controller: _commentController,
+                              style: const TextStyle(color: Colors.white),
+                              decoration: const InputDecoration(
+                                hintText: "Add comment...",
+                                hintStyle: TextStyle(color: Colors.white54),
+                                border: InputBorder.none,
+                              ),
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.send, color: Colors.green),
+                          onPressed: () {
+                            if (_commentController.text.isNotEmpty) {
+                              _addComment(_commentController.text);
+                              _commentController.clear();
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
+    );
+  }
+
+  /// 📌 Widget ย่อย
+  Widget _infoItem(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, color: Colors.green, size: 18),
+        const SizedBox(width: 4),
+        Text(text, style: const TextStyle(color: Colors.white)),
+      ],
     );
   }
 }

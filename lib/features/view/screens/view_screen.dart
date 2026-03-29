@@ -34,7 +34,7 @@ class _ViewScreenState extends State<ViewScreen> {
           .get();
 
       final posts = snapshot.docs
-          .map((doc) => Post.fromJson(doc.data())) // ✅ fromJson แทน fromMap
+          .map((doc) => Post.fromFirestore(doc))
           .toList();
 
       setState(() {

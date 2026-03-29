@@ -12,6 +12,7 @@ import 'features/view/screens/home_screen.dart';
 import 'features/map/screens/map_screen.dart';
 import 'features/view/screens/view_screen.dart';
 import 'features/profile/screens/profile_screen.dart';
+import 'features/run/screens/run_tracking_screen.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -84,7 +85,7 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _screens = const [
     HomeScreen(),
     MapScreen(),
-    _PlaceholderScreen(label: 'Start Run'),
+    RunTrackingScreen(),
     ViewScreen(),
     ProfileScreen(),
   ];
