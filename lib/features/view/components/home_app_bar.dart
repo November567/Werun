@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/theme/app_theme.dart';
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -11,6 +13,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
     final surface = Theme.of(context).colorScheme.surface;
+    final uid = FirebaseAuth.instance.currentUser?.uid;
 
     return Container(
       color: Colors.black,
@@ -18,7 +21,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // WERUN + bell
+          // WERUN + avatar + bell
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -31,9 +34,35 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                   letterSpacing: 2,
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.notifications_none, color: Colors.white),
-                onPressed: () {},
+              Row(
+                children: [
+                  if (uid != null)
+                    StreamBuilder<DocumentSnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(uid)
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        final avatarUrl = snapshot.hasData && snapshot.data!.exists
+                            ? (snapshot.data!.data()
+                                    as Map<String, dynamic>)['avatarUrl'] as String? ?? ''
+                            : '';
+                        return CircleAvatar(
+                          radius: 16,
+                          backgroundColor: Colors.grey[800],
+                          backgroundImage: NetworkImage(
+                            avatarUrl.isNotEmpty
+                                ? avatarUrl
+                                : 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y',
+                          ),
+                        );
+                      },
+                    ),
+                  IconButton(
+                    icon: const Icon(Icons.notifications_none, color: Colors.white),
+                    onPressed: () {},
+                  ),
+                ],
               ),
             ],
           ),

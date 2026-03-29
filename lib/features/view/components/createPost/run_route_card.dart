@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../models/post.dart';
 
 class RunRouteCard extends StatelessWidget {
@@ -6,6 +7,7 @@ class RunRouteCard extends StatelessWidget {
   final VoidCallback onLike;
   final VoidCallback onTap;
   final bool isLiked;
+  final bool isOwnPost;
 
   const RunRouteCard({
     super.key,
@@ -13,6 +15,7 @@ class RunRouteCard extends StatelessWidget {
     required this.onLike,
     required this.onTap,
     required this.isLiked,
+    this.isOwnPost = false,
   });
 
   @override
@@ -35,17 +38,7 @@ class RunRouteCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(14, 12, 8, 8),
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: Colors.grey[700],
-                  backgroundImage: post.userAvatar.isNotEmpty
-                      ? NetworkImage(post.userAvatar)
-                      : null,
-                  child: post.userAvatar.isEmpty
-                      ? const Icon(Icons.person,
-                          color: Colors.white, size: 20)
-                      : null,
-                ),
+                _UserAvatar(userId: post.userId, avatarUrl: post.userAvatar),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
@@ -60,23 +53,25 @@ class RunRouteCard extends StatelessWidget {
                                 .titleMedium
                                 ?.copyWith(fontSize: 14),
                           ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: primary,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text(
-                              'FRIEND',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
+                          if (!isOwnPost) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: primary,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text(
+                                'FRIEND',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                       if (post.location.isNotEmpty) ...[
@@ -140,64 +135,110 @@ class RunRouteCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
             child: Row(
               children: [
+                // Like — padded for 44dp touch target
                 GestureDetector(
                   onTap: onLike,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                    child: Row(
+                      children: [
+                        Icon(
+                          isLiked ? Icons.favorite : Icons.favorite_border,
+                          color: isLiked ? primary : Colors.white54,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 4),
+                        Text('${post.likes}',
+                            style: Theme.of(context).textTheme.bodySmall),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Comment count — padded for 44dp touch target
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
                   child: Row(
                     children: [
-                      Icon(
-                        isLiked ? Icons.favorite : Icons.favorite_border,
-                        color: isLiked ? primary : Colors.white54,
-                        size: 18,
-                      ),
+                      const Icon(Icons.chat_bubble_outline,
+                          color: Colors.white54, size: 20),
                       const SizedBox(width: 4),
-                      Text('${post.likes}',
+                      Text('${post.comments.length}',
                           style: Theme.of(context).textTheme.bodySmall),
                     ],
                   ),
-                ),
-                const SizedBox(width: 16),
-                Row(
-                  children: [
-                    const Icon(Icons.chat_bubble_outline,
-                        color: Colors.white54, size: 18),
-                    const SizedBox(width: 4),
-                    Text('${post.comments.length}',
-                        style: Theme.of(context).textTheme.bodySmall),
-                  ],
                 ),
                 const Spacer(),
                 OutlinedButton(
                   onPressed: () {},
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 4),
-                    minimumSize: Size.zero,
+                        horizontal: 14, vertical: 10),
+                    minimumSize: const Size(64, 44),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8)),
                   ),
-                  child: const Text('Share', style: TextStyle(fontSize: 12)),
+                  child: const Text('Share', style: TextStyle(fontSize: 13)),
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: onTap,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 4),
-                    minimumSize: Size.zero,
+                        horizontal: 14, vertical: 10),
+                    minimumSize: const Size(96, 44),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8)),
                   ),
                   child: const Text('Route detail',
                       style: TextStyle(
-                          fontSize: 12, fontWeight: FontWeight.bold)),
+                          fontSize: 13, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+const _kAnonymousAvatar =
+    'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+
+class _UserAvatar extends StatelessWidget {
+  final String userId;
+  final String avatarUrl;
+
+  const _UserAvatar({required this.userId, required this.avatarUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    if (avatarUrl.isNotEmpty) {
+      return CircleAvatar(
+        radius: 20,
+        backgroundColor: Colors.grey[700],
+        backgroundImage: NetworkImage(avatarUrl),
+      );
+    }
+
+    // Avatar not cached in post — fetch live from Firestore
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance.collection('users').doc(userId).get(),
+      builder: (context, snapshot) {
+        final url = snapshot.hasData && snapshot.data!.exists
+            ? (snapshot.data!.data() as Map<String, dynamic>)['avatarUrl']
+                    as String? ??
+                ''
+            : '';
+        return CircleAvatar(
+          radius: 20,
+          backgroundColor: Colors.grey[700],
+          backgroundImage: NetworkImage(url.isNotEmpty ? url : _kAnonymousAvatar),
+        );
+      },
     );
   }
 }
@@ -221,7 +262,7 @@ class _StatCol extends StatelessWidget {
         ),
         const SizedBox(height: 2),
         Text(label,
-            style: const TextStyle(color: Colors.white38, fontSize: 11)),
+            style: const TextStyle(color: Colors.white60, fontSize: 11)),
       ],
     );
   }

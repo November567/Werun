@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../components/createPost/run_route_card.dart';
 import '../components/suggested_places_card.dart';
@@ -34,7 +35,19 @@ class _HomeScreenState extends State<HomeScreen> {
     if (controller == null || controller.text.isEmpty) return;
     final text = controller.text.trim();
     controller.clear();
-    await _postService.addComment(post.id, 'You: $text');
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    String userName = 'Me';
+    String userAvatar = '';
+    if (uid != null) {
+      final userData = await _postService.getUserData(uid);
+      userName = userData['nickName'] ?? userData['fullName'] ?? 'Me';
+      userAvatar = userData['avatarUrl'] ?? '';
+    }
+    await _postService.addComment(post.id, {
+      'userName': userName,
+      'userAvatar': userAvatar,
+      'text': text,
+    });
   }
 
   TextEditingController _getController(String id) {
@@ -119,6 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           RunRouteCard(
                             post: post,
                             isLiked: likedPosts.contains(post.id),
+                            isOwnPost: post.userId == FirebaseAuth.instance.currentUser?.uid,
                             onLike: () => _likePost(post),
                             onTap: () => Navigator.push(
                               context,
@@ -132,11 +146,40 @@ class _HomeScreenState extends State<HomeScreen> {
                           ...post.comments.take(2).map(
                                 (c) => Padding(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 20, vertical: 3),
-                                  child: Text(
-                                    c,
-                                    style: const TextStyle(
-                                        color: Colors.white60, fontSize: 13),
+                                      horizontal: 16, vertical: 4),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 13,
+                                        backgroundImage: NetworkImage(
+                                          (c['userAvatar'] as String?)?.isNotEmpty == true
+                                              ? c['userAvatar'] as String
+                                              : 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y',
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: RichText(
+                                          text: TextSpan(
+                                            style: const TextStyle(fontSize: 13),
+                                            children: [
+                                              TextSpan(
+                                                text: '${c['userName'] ?? ''} ',
+                                                style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.w600),
+                                              ),
+                                              TextSpan(
+                                                text: c['text'] ?? '',
+                                                style: const TextStyle(
+                                                    color: Colors.white60),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),

@@ -17,7 +17,7 @@ class Post {
   final DateTime createdAt;
   final int likes;
   final int saves;
-  final List<String> comments;
+  final List<Map<String, dynamic>> comments;
 
   Post({
     required this.id,
@@ -94,11 +94,20 @@ class Post {
       createdAt: createdAt,
       likes: json['likes'] ?? 0,
       saves: json['saves'] ?? 0,
-      comments: List<String>.from(json['comments'] ?? []),
+      comments: parseComments(json['comments']),
     );
   }
 
   factory Post.fromMap(Map<String, dynamic> map) => Post.fromJson(map);
+
+  static List<Map<String, dynamic>> parseComments(dynamic raw) {
+    if (raw == null) return [];
+    return (raw as List<dynamic>).map((c) {
+      if (c is Map) return Map<String, dynamic>.from(c);
+      // backwards compat: old plain string comments
+      return {'text': c.toString(), 'userName': '', 'userAvatar': ''};
+    }).toList();
+  }
 
   /// 🔥 สำคัญ: Firestore → Post
   factory Post.fromFirestore(DocumentSnapshot doc) {
@@ -125,7 +134,7 @@ class Post {
 
       likes: data['likes'] ?? 0,
       saves: data['saves'] ?? 0,
-      comments: List<String>.from(data['comments'] ?? []),
+      comments: parseComments(data['comments']),
     );
   }
 }
