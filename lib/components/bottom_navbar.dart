@@ -23,7 +23,7 @@ class WeRunBottomNavbar extends StatelessWidget {
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        selectedItemColor: Colors.greenAccent,
+        selectedItemColor: Color.fromARGB(255, 76, 175, 80),
         unselectedItemColor: Colors.white54,
         showUnselectedLabels: true,
         items: const [
