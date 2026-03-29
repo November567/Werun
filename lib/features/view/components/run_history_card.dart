@@ -8,7 +8,7 @@ class RunHistoryCard extends StatelessWidget {
     return Container(
       width: 160,
       decoration: BoxDecoration(
-        color: const Color(0xFF1a1a1a),
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
       ),
       padding: const EdgeInsets.all(10),
@@ -46,17 +46,17 @@ class RunHistoryCard extends StatelessWidget {
           const SizedBox(height: 6),
           Row(
             children: [
-              Icon(Icons.location_on, color: Colors.green, size: 11),
+              Icon(Icons.location_on, color: Theme.of(context).colorScheme.primary, size: 11),
               const SizedBox(width: 2),
               const Text('5.32 km', style: TextStyle(color: Colors.white70, fontSize: 10)),
             ],
           ),
           Row(
             children: [
-              Icon(Icons.schedule, color: Colors.green, size: 11),
+              Icon(Icons.schedule, color: Theme.of(context).colorScheme.primary, size: 11),
               const SizedBox(width: 2),
               const Text('1 hr. ', style: TextStyle(color: Colors.white70, fontSize: 10)),
-              Icon(Icons.directions_run, color: Colors.green, size: 11),
+              Icon(Icons.directions_run, color: Theme.of(context).colorScheme.primary, size: 11),
               const SizedBox(width: 2),
               const Text('2 hr./Pace', style: TextStyle(color: Colors.white70, fontSize: 10)),
             ],

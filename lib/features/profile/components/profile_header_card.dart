@@ -7,11 +7,10 @@ class ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     final user = FirebaseAuth.instance.currentUser;
 
-    if (user == null) {
-      return const SizedBox();
-    }
+    if (user == null) return const SizedBox();
 
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
@@ -20,16 +19,11 @@ class ProfileHeader extends StatelessWidget {
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(color: Colors.lime),
-          );
+          return const Center(child: CircularProgressIndicator());
         }
-
         if (!snapshot.hasData || !snapshot.data!.exists) {
-          return const Text(
-            'User data not found',
-            style: TextStyle(color: Colors.red),
-          );
+          return const Text('User data not found',
+              style: TextStyle(color: Colors.red));
         }
 
         final data = snapshot.data!.data() as Map<String, dynamic>;
@@ -42,12 +36,12 @@ class ProfileHeader extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: Colors.lime.withValues(alpha: 0.3),
+                      color: primary.withValues(alpha: 0.4),
                       width: 2,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.lime.withValues(alpha: 0.2),
+                        color: primary.withValues(alpha: 0.2),
                         blurRadius: 20,
                         spreadRadius: 2,
                       ),
@@ -60,21 +54,18 @@ class ProfileHeader extends StatelessWidget {
                     ),
                   ),
                 ),
-
                 Positioned(
                   bottom: 4,
                   right: 4,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
-                    ),
+                        horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: Colors.lime,
+                      color: primary,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Text(
-                      "PRO",
+                      'PRO',
                       style: TextStyle(
                         fontSize: 10,
                         color: Colors.black,
@@ -90,18 +81,17 @@ class ProfileHeader extends StatelessWidget {
 
             Text(
               data['fullName'] ?? 'No name',
-              style: const TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontSize: 28),
             ),
 
             const SizedBox(height: 4),
 
-            const Text(
-              "RUNNER",
-              style: TextStyle(color: Colors.lime, letterSpacing: 2),
+            Text(
+              'RUNNER',
+              style: TextStyle(color: primary, letterSpacing: 2),
             ),
           ],
         );

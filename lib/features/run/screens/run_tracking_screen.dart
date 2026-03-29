@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../services/run_tracking_service.dart';
-import '../../../core/constants/app_colors.dart';
 import '../../../shared/widgets/run_stat_chip.dart';
 import '../../../shared/utils/run_formatters.dart';
 import 'post_run_sheet.dart';
@@ -129,7 +128,7 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
       Polyline(
         polylineId: const PolylineId('route'),
         points: _service.routePoints.toList(),
-        color: AppColors.accent,
+        color: Theme.of(context).colorScheme.primary,
         width: 5,
       ),
     };
@@ -155,14 +154,14 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.cardBg,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.black,
-        title: const Text(
+        title: Text(
           'Track Run',
-          style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold),
+          style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold),
         ),
-        iconTheme: const IconThemeData(color: AppColors.accent),
+        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.primary),
       ),
       body: Column(
         children: [
@@ -185,17 +184,17 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
 
           // Stats + buttons
           Container(
-            color: AppColors.surfaceBg,
+            color: Theme.of(context).colorScheme.surface,
             padding:
                 const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
             child: Column(
               children: [
                 if (_permissionDenied)
-                  const Padding(
-                    padding: EdgeInsets.only(bottom: 12),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
                     child: Text(
                       'Location permission denied. Please enable it in settings.',
-                      style: TextStyle(color: AppColors.actionRed),
+                      style: TextStyle(color: Theme.of(context).colorScheme.error),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -227,7 +226,7 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
                     height: 52,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.accent,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
                         foregroundColor: Colors.black,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -248,8 +247,8 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
                     height: 48,
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.accent,
-                        side: const BorderSide(color: AppColors.accent),
+                        foregroundColor: Theme.of(context).colorScheme.primary,
+                        side: BorderSide(color: Theme.of(context).colorScheme.primary),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -265,7 +264,7 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
                     height: 52,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.actionRed,
+                        backgroundColor: Theme.of(context).colorScheme.error,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),

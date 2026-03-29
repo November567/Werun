@@ -181,7 +181,9 @@ class _ViewDetailScreenState extends State<ViewDetailScreen>
                               isLiked
                                   ? Icons.thumb_up
                                   : Icons.thumb_up_outlined,
-                              color: isLiked ? Colors.green : Colors.white,
+                              color: isLiked
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Colors.white,
                             ),
                             onPressed: _toggleLike,
                           ),
@@ -213,8 +215,11 @@ class _ViewDetailScreenState extends State<ViewDetailScreen>
                               vertical: 8,
                             ),
                             decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Colors.green, Colors.lightGreen],
+                              gradient: LinearGradient(
+                                colors: [
+                                  Theme.of(context).colorScheme.primary,
+                                  Theme.of(context).colorScheme.secondary,
+                                ],
                               ),
                               borderRadius: BorderRadius.circular(20),
                             ),
@@ -293,7 +298,7 @@ class _ViewDetailScreenState extends State<ViewDetailScreen>
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.send, color: Colors.green),
+                          icon: Icon(Icons.send, color: Theme.of(context).colorScheme.primary),
                           onPressed: () {
                             if (_commentController.text.isNotEmpty) {
                               _addComment(_commentController.text);
@@ -317,7 +322,7 @@ class _ViewDetailScreenState extends State<ViewDetailScreen>
   Widget _infoItem(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, color: Colors.green, size: 18),
+        Icon(icon, color: Theme.of(context).colorScheme.primary, size: 18),
         const SizedBox(width: 4),
         Text(text, style: const TextStyle(color: Colors.white)),
       ],

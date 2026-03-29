@@ -86,7 +86,7 @@ class _FriendActivityCardState extends State<FriendActivityCard> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF2a2a2a),
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
       ),
       clipBehavior: Clip.hardEdge,
@@ -162,7 +162,7 @@ class _FriendActivityCardState extends State<FriendActivityCard> {
 
           // Stats Section
           Container(
-            color: const Color(0xFF1a1a1a),
+            color: Theme.of(context).colorScheme.surface,
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -175,17 +175,17 @@ class _FriendActivityCardState extends State<FriendActivityCard> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Icon(Icons.location_on, color: Colors.green, size: 18),
+                    Icon(Icons.location_on, color: Theme.of(context).colorScheme.primary, size: 18),
                     const SizedBox(width: 6),
                     Text(widget.distance,
                         style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
                     const SizedBox(width: 16),
-                    Icon(Icons.schedule, color: Colors.green, size: 18),
+                    Icon(Icons.schedule, color: Theme.of(context).colorScheme.primary, size: 18),
                     const SizedBox(width: 6),
                     Text(widget.duration,
                         style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
                     const SizedBox(width: 16),
-                    Icon(Icons.directions_run, color: Colors.green, size: 18),
+                    Icon(Icons.directions_run, color: Theme.of(context).colorScheme.primary, size: 18),
                     const SizedBox(width: 6),
                     Text(widget.pace,
                         style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
@@ -202,7 +202,7 @@ class _FriendActivityCardState extends State<FriendActivityCard> {
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         decoration: BoxDecoration(
-                          color: _liked ? Colors.green : Colors.grey[700],
+                          color: _liked ? Theme.of(context).colorScheme.primary : Colors.grey[700],
                           borderRadius: BorderRadius.circular(20),
                         ),
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),

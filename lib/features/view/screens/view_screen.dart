@@ -101,7 +101,7 @@ class _ViewScreenState extends State<ViewScreen> {
               child: _isLoading
                   ? const Center(
                       child:
-                          CircularProgressIndicator(color: Colors.green),
+                          CircularProgressIndicator(),
                     )
                   : _filteredPosts.isEmpty
                       ? const Center(
@@ -112,7 +112,7 @@ class _ViewScreenState extends State<ViewScreen> {
                         )
                       : RefreshIndicator(
                           onRefresh: _fetchPosts,
-                          color: Colors.green,
+                          color: Theme.of(context).colorScheme.primary,
                           child: GridView.builder(
                             padding: const EdgeInsets.symmetric(horizontal: 12),
                             itemCount: _filteredPosts.length,

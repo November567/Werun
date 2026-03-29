@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 // screens
 import 'components/bottom_navbar.dart';
+import 'core/theme/app_theme.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/view/screens/home_screen.dart';
 import 'features/map/screens/map_screen.dart';
@@ -39,7 +40,7 @@ class WeRunApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark(),
+      theme: AppTheme.dark,
       home: AuthGate(prefs: prefs),
     );
   }

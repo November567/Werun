@@ -75,11 +75,11 @@ class _MapViewState extends State<MapView> {
 
   Color _markerColor(String id) {
     switch (id) {
-      case 'runner_1': return Colors.lime;
+      case 'runner_1': return Colors.greenAccent;
       case 'runner_2': return Colors.cyan;
       case 'runner_3': return Colors.orange;
       case 'runner_4': return Colors.purple;
-      default:         return Colors.lime;
+      default:         return Colors.greenAccent;
     }
   }
 

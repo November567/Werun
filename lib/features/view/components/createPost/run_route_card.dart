@@ -17,157 +17,212 @@ class RunRouteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(
-          color: const Color(0xFF2a2a2a),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        clipBehavior: Clip.hardEdge,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            /// 🖼 IMAGE
-            Image.network(
+    final primary = Theme.of(context).colorScheme.primary;
+    final surface = Theme.of(context).colorScheme.surface;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      clipBehavior: Clip.hardEdge,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Header ──
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 8, 8),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Colors.grey[700],
+                  backgroundImage: post.userAvatar.isNotEmpty
+                      ? NetworkImage(post.userAvatar)
+                      : null,
+                  child: post.userAvatar.isEmpty
+                      ? const Icon(Icons.person,
+                          color: Colors.white, size: 20)
+                      : null,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            post.userName,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(fontSize: 14),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: primary,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'FRIEND',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (post.location.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            const Icon(Icons.location_on,
+                                color: Colors.white38, size: 12),
+                            const SizedBox(width: 2),
+                            Text(post.location,
+                                style: Theme.of(context).textTheme.bodySmall),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const Icon(Icons.more_vert, color: Colors.white38),
+              ],
+            ),
+          ),
+
+          // ── Image ──
+          GestureDetector(
+            onTap: onTap,
+            child: Image.network(
               post.imageUrl.isNotEmpty
                   ? post.imageUrl
-                  : 'https://via.placeholder.com/300',
-              height: 200,
+                  : 'https://via.placeholder.com/400x200',
+              height: 180,
               width: double.infinity,
               fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(
-                height: 200,
+              errorBuilder: (_, __, ___) => Container(
+                height: 180,
                 color: Colors.grey[800],
-                child: const Icon(
-                  Icons.broken_image,
-                  color: Colors.white54,
-                  size: 48,
+                child: const Icon(Icons.map,
+                    color: Colors.white38, size: 48),
+              ),
+            ),
+          ),
+
+          // ── Stats ──
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _StatCol(value: post.distance, label: 'DIST', primary: primary),
+                Container(width: 1, height: 28, color: Colors.white12),
+                _StatCol(value: post.duration, label: 'TIME', primary: primary),
+                Container(width: 1, height: 28, color: Colors.white12),
+                _StatCol(value: post.pace, label: 'PACE', primary: primary),
+              ],
+            ),
+          ),
+
+          const Divider(height: 1),
+
+          // ── Actions ──
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: onLike,
+                  child: Row(
+                    children: [
+                      Icon(
+                        isLiked ? Icons.favorite : Icons.favorite_border,
+                        color: isLiked ? primary : Colors.white54,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 4),
+                      Text('${post.likes}',
+                          style: Theme.of(context).textTheme.bodySmall),
+                    ],
+                  ),
                 ),
-              ),
+                const SizedBox(width: 16),
+                Row(
+                  children: [
+                    const Icon(Icons.chat_bubble_outline,
+                        color: Colors.white54, size: 18),
+                    const SizedBox(width: 4),
+                    Text('${post.comments.length}',
+                        style: Theme.of(context).textTheme.bodySmall),
+                  ],
+                ),
+                const Spacer(),
+                OutlinedButton(
+                  onPressed: () {},
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 4),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text('Share', style: TextStyle(fontSize: 12)),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: onTap,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 4),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text('Route detail',
+                      style: TextStyle(
+                          fontSize: 12, fontWeight: FontWeight.bold)),
+                ),
+              ],
             ),
-
-            /// 📊 CONTENT
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  /// 👤 USER
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 16,
-                        backgroundImage: post.userAvatar.isNotEmpty
-                            ? NetworkImage(post.userAvatar)
-                            : null,
-                        backgroundColor: Colors.grey,
-                        child: post.userAvatar.isEmpty
-                            ? const Icon(Icons.person, color: Colors.white)
-                            : null,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        post.userName,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  /// 📍 RUN INFO
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.location_on,
-                        color: Colors.green,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        post.distance,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      const SizedBox(width: 16),
-                      const Icon(
-                        Icons.schedule,
-                        color: Colors.orange,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        post.duration,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      const SizedBox(width: 16),
-                      const Icon(
-                        Icons.directions_run,
-                        color: Colors.blue,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        post.pace,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  if (post.description.isNotEmpty)
-                    Text(
-                      post.description,
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-
-                  const SizedBox(height: 10),
-                  const Divider(color: Colors.white24),
-
-                  /// 👍 LIKE + 💬 COMMENT
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: Icon(
-                              isLiked
-                                  ? Icons.thumb_up
-                                  : Icons.thumb_up_outlined,
-                              color: isLiked ? Colors.green : Colors.white,
-                            ),
-                            onPressed: onLike,
-                          ),
-                          Text(
-                            "(${post.likes})",
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          const Icon(Icons.comment, color: Colors.white),
-                          const SizedBox(width: 4),
-                          Text(
-                            "(${post.comments.length})",
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
+    );
+  }
+}
+
+class _StatCol extends StatelessWidget {
+  final String value;
+  final String label;
+  final Color primary;
+
+  const _StatCol(
+      {required this.value, required this.label, required this.primary});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          value.isNotEmpty ? value : '--',
+          style: TextStyle(
+              color: primary, fontSize: 15, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 2),
+        Text(label,
+            style: const TextStyle(color: Colors.white38, fontSize: 11)),
+      ],
     );
   }
 }
