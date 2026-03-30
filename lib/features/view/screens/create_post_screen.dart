@@ -24,9 +24,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   bool _isLoading = false;
   String? _imageUrl;
   bool _uploading = false;
+  Map<String, dynamic>? _selectedRun; // run history entry
 
   final PostService _postService = PostService();
   final ImagePicker _picker = ImagePicker();
+  final String _uid = FirebaseAuth.instance.currentUser?.uid ?? '';
 
   @override
   void dispose() {
@@ -118,9 +120,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         privacy: _selectedPrivacy,
         imageUrl: _imageUrl!,
         location: _tags.isNotEmpty ? _tags.first : '',
-        distance: '5.32 กม.',
-        duration: '1 ชม.',
-        pace: '12:00 นาที/กม.',
+        distance: _selectedRun?['distance'] ?? '',
+        duration: _selectedRun?['duration'] ?? '',
+        pace: _selectedRun?['pace'] ?? '',
         createdAt: DateTime.now(),
         likes: 0,
         comments: [],
@@ -189,8 +191,29 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // ── Run History Picker ──────────────────────────────
+                  _SectionLabel('SELECT RUN'),
+                  const SizedBox(height: 10),
+                  _RunHistoryPicker(
+                    uid: _uid,
+                    selectedRunId: _selectedRun?['id'] as String?,
+                    onSelected: (run) {
+                      setState(() {
+                        _selectedRun = run;
+                        _imageUrl = run['imageUrl'] as String?;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
                   // ── Stats Card ──────────────────────────────────────
-                  _StatsCard(imageUrl: _imageUrl, uploading: _uploading),
+                  _StatsCard(
+                    imageUrl: _imageUrl,
+                    uploading: _uploading,
+                    distance: _selectedRun?['distance'] as String?,
+                    duration: _selectedRun?['duration'] as String?,
+                    pace: _selectedRun?['pace'] as String?,
+                  ),
                   const SizedBox(height: 20),
 
                   // ── Add Media ───────────────────────────────────────
@@ -420,7 +443,16 @@ class _SectionLabel extends StatelessWidget {
 class _StatsCard extends StatelessWidget {
   final String? imageUrl;
   final bool uploading;
-  const _StatsCard({this.imageUrl, required this.uploading});
+  final String? distance;
+  final String? duration;
+  final String? pace;
+  const _StatsCard({
+    this.imageUrl,
+    required this.uploading,
+    this.distance,
+    this.duration,
+    this.pace,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -458,17 +490,9 @@ class _StatsCard extends StatelessWidget {
                 // Stats row
                 Row(
                   children: [
-                    Expanded(
-                      child: _BigStat(
-                          value: '5.32', unit: 'KM', label: 'DISTANCE'),
-                    ),
-                    Expanded(
-                      child: _BigStat(value: '1', unit: 'HR', label: 'TIME'),
-                    ),
-                    Expanded(
-                      child: _BigStat(
-                          value: '12:00', unit: '', label: 'MIN/KM'),
-                    ),
+                    Expanded(child: _BigStat(value: distance ?? '--', unit: '', label: 'DISTANCE')),
+                    Expanded(child: _BigStat(value: duration ?? '--', unit: '', label: 'TIME')),
+                    Expanded(child: _BigStat(value: pace ?? '--', unit: '', label: 'PACE')),
                   ],
                 ),
               ],
@@ -690,6 +714,175 @@ class _TagChip extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _RunHistoryPicker extends StatelessWidget {
+  final String uid;
+  final String? selectedRunId;
+  final ValueChanged<Map<String, dynamic>> onSelected;
+
+  const _RunHistoryPicker({
+    required this.uid,
+    required this.selectedRunId,
+    required this.onSelected,
+  });
+
+  Widget _emptyBox(String message) => Container(
+        height: 90,
+        decoration: BoxDecoration(
+          color: AppTheme.cardBg,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white12),
+        ),
+        child: Center(
+          child: Text(
+            message,
+            style: const TextStyle(color: Colors.white38, fontSize: 12),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
+    if (uid.isEmpty) {
+      return _emptyBox('Not logged in.');
+    }
+
+    return FutureBuilder<QuerySnapshot>(
+      future: FirebaseFirestore.instance
+          .collection('runs')
+          .where('userId', isEqualTo: uid)
+          .limit(20)
+          .get(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const SizedBox(
+            height: 90,
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return _emptyBox('Could not load runs: ${snapshot.error}');
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return _emptyBox('No run history yet. Complete a run first.');
+        }
+
+        final docs = snapshot.data!.docs.toList()
+          ..sort((a, b) {
+            final at = (a['createdAt'] as Timestamp?)?.millisecondsSinceEpoch ?? 0;
+            final bt = (b['createdAt'] as Timestamp?)?.millisecondsSinceEpoch ?? 0;
+            return bt.compareTo(at);
+          });
+
+
+        return SizedBox(
+          height: 100,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: docs.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (context, i) {
+              final doc = docs[i];
+              final run = {'id': doc.id, ...doc.data() as Map<String, dynamic>};
+              final isSelected = selectedRunId == doc.id;
+              final imageUrl = run['imageUrl'] as String? ?? '';
+
+              return GestureDetector(
+                onTap: () => onSelected(run),
+                child: Container(
+                  width: 140,
+                  decoration: BoxDecoration(
+                    color: AppTheme.cardBg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected ? primary : Colors.white12,
+                      width: isSelected ? 2 : 1,
+                    ),
+                  ),
+                  clipBehavior: Clip.hardEdge,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      if (imageUrl.isNotEmpty)
+                        Image.network(
+                          imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) =>
+                              const Icon(Icons.map, color: Colors.white24),
+                        )
+                      else
+                        const Icon(Icons.map, color: Colors.white24),
+
+                      // Dark overlay with stats
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withValues(alpha: 0.75),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // Stats text
+                      Positioned(
+                        left: 8,
+                        right: 8,
+                        bottom: 8,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              run['distance'] as String? ?? '',
+                              style: TextStyle(
+                                color: primary,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              run['duration'] as String? ?? '',
+                              style: const TextStyle(
+                                  color: Colors.white70, fontSize: 11),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Selected checkmark
+                      if (isSelected)
+                        Positioned(
+                          top: 6,
+                          right: 6,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: primary,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.check,
+                                color: Colors.black, size: 12),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

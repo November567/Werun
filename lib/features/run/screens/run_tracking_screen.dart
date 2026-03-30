@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -216,19 +217,51 @@ class _RunTrackingScreenState extends State<RunTrackingScreen> {
       }
     });
 
+    // Capture stats now before service resets
+    final distance = '${_service.distanceKm.toStringAsFixed(2)} km';
+    final duration = formatDuration(_service.elapsed);
+    final pace = '${formatPace(_service.paceMinPerKm)} /km';
+
+    // Save run to history in background
+    _saveRunToHistory(imageUrlFuture, distance: distance, duration: duration, pace: pace);
+
     // Open sheet immediately — no waiting
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => PostRunSheet(
-        distance: '${_service.distanceKm.toStringAsFixed(2)} km',
-        duration: formatDuration(_service.elapsed),
-        pace: '${formatPace(_service.paceMinPerKm)} /km',
+        distance: distance,
+        duration: duration,
+        pace: pace,
         snapshotFuture: snapshotFuture,
         imageUrlFuture: imageUrlFuture,
       ),
     );
+  }
+
+  Future<void> _saveRunToHistory(
+    Future<String> imageUrlFuture, {
+    required String distance,
+    required String duration,
+    required String pace,
+  }) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    try {
+      final imageUrl = await imageUrlFuture;
+      await FirebaseFirestore.instance.collection('runs').add({
+        'userId': uid,
+        'distance': distance,
+        'duration': duration,
+        'pace': pace,
+        'imageUrl': imageUrl,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      debugPrint('[RunTracking] Run saved to history');
+    } catch (e) {
+      debugPrint('[RunTracking] Failed to save run history: $e');
+    }
   }
 
   Set<Polyline> get _polylines {
