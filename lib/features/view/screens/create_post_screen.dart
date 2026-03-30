@@ -545,13 +545,16 @@ class _BigStat extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text(
-              value,
-              style: TextStyle(
-                color: primary,
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                height: 1,
+            Flexible(
+              child: Text(
+                value,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: primary,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  height: 1,
+                ),
               ),
             ),
             if (unit.isNotEmpty) ...[
@@ -753,12 +756,12 @@ class _RunHistoryPicker extends StatelessWidget {
       return _emptyBox('Not logged in.');
     }
 
-    return FutureBuilder<QuerySnapshot>(
-      future: FirebaseFirestore.instance
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
           .collection('runs')
           .where('userId', isEqualTo: uid)
           .limit(20)
-          .get(),
+          .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const SizedBox(
