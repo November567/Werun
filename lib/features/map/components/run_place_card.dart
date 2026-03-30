@@ -6,7 +6,7 @@ class RunPlaceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      bottom: 90,
+      bottom: 100,
       left: 16,
       right: 16,
       child: Container(

@@ -18,6 +18,7 @@ class Post {
   final int likes;
   final int saves;
   final List<Map<String, dynamic>> comments;
+  final List<String> likedBy;
 
   Post({
     required this.id,
@@ -37,6 +38,7 @@ class Post {
     this.likes = 0,
     this.saves = 0,
     this.comments = const [],
+    this.likedBy = const [],
   });
 
   /// ✅ SAVE → Firestore
@@ -59,6 +61,7 @@ class Post {
       'likes': likes,
       'saves': saves,
       'comments': comments,
+      'likedBy': likedBy,
     };
   }
 
@@ -95,6 +98,7 @@ class Post {
       likes: json['likes'] ?? 0,
       saves: json['saves'] ?? 0,
       comments: parseComments(json['comments']),
+      likedBy: List<String>.from(json['likedBy'] ?? []),
     );
   }
 
@@ -135,6 +139,7 @@ class Post {
       likes: data['likes'] ?? 0,
       saves: data['saves'] ?? 0,
       comments: parseComments(data['comments']),
+      likedBy: List<String>.from(data['likedBy'] ?? []),
     );
   }
 }

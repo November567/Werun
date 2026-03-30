@@ -14,7 +14,6 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('WeRun'),
-        leading: const Icon(Icons.arrow_back),
         actions: [
           const Padding(
             padding: EdgeInsets.only(right: 4),
@@ -85,8 +84,10 @@ class StatsSection extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Total Distance',
-                  style: Theme.of(context).textTheme.bodySmall),
+              Text(
+                'Total Distance',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
               const SizedBox(height: 4),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -102,8 +103,7 @@ class StatsSection extends StatelessWidget {
                   const SizedBox(width: 6),
                   const Padding(
                     padding: EdgeInsets.only(bottom: 4),
-                    child: Text('KM',
-                        style: TextStyle(color: Colors.grey)),
+                    child: Text('KM', style: TextStyle(color: Colors.grey)),
                   ),
                 ],
               ),
@@ -131,9 +131,13 @@ class StatsSection extends StatelessWidget {
         children: [
           Text(title, style: Theme.of(context).textTheme.bodySmall),
           const SizedBox(height: 5),
-          Text(value,
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold)),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );

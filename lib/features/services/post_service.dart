@@ -99,10 +99,13 @@ class PostService {
     }
   }
 
-  Future<void> toggleLike(String postId, {required bool isLiked}) async {
+  Future<void> toggleLike(String postId, String uid, {required bool isLiked}) async {
     try {
       await _firestore.collection(_collection).doc(postId).update({
         'likes': FieldValue.increment(isLiked ? 1 : -1),
+        'likedBy': isLiked
+            ? FieldValue.arrayUnion([uid])
+            : FieldValue.arrayRemove([uid]),
       });
     } catch (e) {
       debugPrint('[PostService] Error toggling like: $e');
