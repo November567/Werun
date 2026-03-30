@@ -19,14 +19,11 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _postService = PostService();
-  final Set<String> likedPosts = {};
+  final String _uid = FirebaseAuth.instance.currentUser?.uid ?? '';
 
   Future<void> _likePost(Post post) async {
-    final isNowLiked = !likedPosts.contains(post.id);
-    setState(() {
-      isNowLiked ? likedPosts.add(post.id) : likedPosts.remove(post.id);
-    });
-    await _postService.toggleLike(post.id, isLiked: isNowLiked);
+    final isNowLiked = !post.likedBy.contains(_uid);
+    await _postService.toggleLike(post.id, _uid, isLiked: isNowLiked);
   }
 
   @override
@@ -89,8 +86,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           RunRouteCard(
                             post: post,
-                            isLiked: likedPosts.contains(post.id),
-                            isOwnPost: post.userId == FirebaseAuth.instance.currentUser?.uid,
+                            isLiked: post.likedBy.contains(_uid),
+                            isOwnPost: post.userId == _uid,
                             onLike: () => _likePost(post),
                             onTap: () => Navigator.push(
                               context,

@@ -26,7 +26,7 @@ class _ViewDetailScreenState extends State<ViewDetailScreen>
   final _commentFocusNode = FocusNode();
   final _scrollController = ScrollController();
 
-  bool isLiked = false;
+  final String _uid = FirebaseAuth.instance.currentUser?.uid ?? '';
   String _myAvatar = '';
   bool _sending = false;
 
@@ -67,9 +67,8 @@ class _ViewDetailScreenState extends State<ViewDetailScreen>
     super.dispose();
   }
 
-  Future<void> _toggleLike() async {
-    setState(() => isLiked = !isLiked);
-    await _postService.toggleLike(widget.post.id, isLiked: isLiked);
+  Future<void> _toggleLike(bool currentlyLiked) async {
+    await _postService.toggleLike(widget.post.id, _uid, isLiked: !currentlyLiked);
     _likeController.forward().then((_) => _likeController.reverse());
   }
 
@@ -143,6 +142,7 @@ ${post.description}
           final post = Post.fromMap(data);
           final comments = Post.parseComments(data['comments']);
           final likes = data['likes'] ?? 0;
+          final isLiked = List<String>.from(data['likedBy'] ?? []).contains(_uid);
 
           return Column(
             children: [
@@ -236,7 +236,7 @@ ${post.description}
                                   color: isLiked ? primary : Colors.white70,
                                   size: 22,
                                 ),
-                                onPressed: _toggleLike,
+                                onPressed: () => _toggleLike(isLiked),
                               ),
                             ),
                             Text('$likes',
